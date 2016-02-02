@@ -24,12 +24,18 @@
 #include "CameraController.h"
 #include "ErrorCodeToMessage.h"
 
+namespace ciavt {
+
 using namespace AVT::VmbAPI;
 
 // TODO move this to JSON config.  You'll want it to be at least 2
 #define NUM_FRAMES 3
 
 CameraController::CameraController()
+: mCamera( nullptr ),
+  mFrame( nullptr ),
+  mColorProcessing( COLOR_PROCESSING_OFF ),
+  mFrameInfo( FRAME_INFO_AUTO )
 { 
 	if( NUM_FRAMES < 2 ) {
 		throw CameraControllerException( __FUNCTION__, "NUM_FRAMES must be > 2.", VmbErrorOther );
@@ -41,6 +47,18 @@ CameraController::~CameraController()
 	if( mCamera ) {
 		mCamera->Close();
 	}
+}
+
+void CameraController::setFrameInfo( FrameInfo info )
+{
+#error implement this
+	// pass to frame observer
+}
+
+void CameraController::setColorProcessing( ColorProcessing cp )
+{
+#error implement this
+	// pass to frame observer
 }
 
 FramePtr CameraController::getCurrFrame()
@@ -57,13 +75,13 @@ void frameObservedCallback( AVT::VmbAPI::FramePtr &frame )
 	mFrame = frame;
 }
 
-void CameraController::startContinuousImageAcquisition( const config::ProgramConfig &config )
+void CameraController::startContinuousImageAcquisition()
 {
 	if( mFrameObserver ) {
 		throw CameraControllerException( __FUNCTION__, "Simultaneous calls to startContinuousImageAcquisition are illegal.", VmbErrorOther );
 	}
 	// Create a frame observer for this camera (This will be wrapped in a shared_ptr so we don't delete it)
-    mFrameObserver = std::unique_ptr<FrameObserver>( new FrameObserver( mCamera, config.getFrameInfos(), config.getColorProcessing() ) );
+    mFrameObserver = std::unique_ptr<FrameObserver>( new FrameObserver( mCamera, mFrameInfo, mColorProcessing ) );
     // Start streaming
     VmbErrorType res = mCamera->StartContinuousImageAcquisition( NUM_FRAMES, IFrameObserverPtr( mFrameObserver.get() ));
 
@@ -79,3 +97,5 @@ void CameraController::stopContinuousImageAcquisition()
     mCamera->StopContinuousImageAcquisition();
     mFrameObserver.reset();
 }
+
+} // namespace ciavt

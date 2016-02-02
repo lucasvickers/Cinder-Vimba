@@ -28,6 +28,8 @@
 
 #include "VimbaCPP/Include/VimbaCPP.h"
 
+namespace ciavt {
+
 class BaseException: public std::exception
 {
 
@@ -90,3 +92,5 @@ class BaseException: public std::exception
         return mResult;
     }
 };
+
+} // namespace ciavt

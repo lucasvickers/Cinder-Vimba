@@ -31,9 +31,11 @@
 
 // TODO bring this file to my standards w/ formatting
 
+namespace ciavt {
+
 using namespace AVT::VmbAPI;
 
-FrameObserver::FrameObserver( CameraPtr camera, config::FrameInfos frameInfos, config::ColorProcessing colorProcessing )
+FrameObserver::FrameObserver( CameraPtr camera, FrameInfo frameInfos, ColorProcessing colorProcessing )
     :   IFrameObserver( camera )
     ,   mFrameInfos( frameInfos )
     ,   mColorProcessing( colorProcessing )
@@ -118,7 +120,7 @@ void FrameObserver::ShowFrameInfos( const FramePtr &pFrame )
     bool                bFPSValid           = false;
     VmbUint64_t         nFramesMissing      = 0;
 
-    if( config::FrameInfos_Show == mFrameInfos ) {
+    if( FRAME_INFO_SHOW == mFrameInfos ) {
         bShowFrameInfos = true;
     }
 
@@ -208,7 +210,7 @@ void FrameObserver::FrameReceived( const FramePtr pFrame )
 {
     if(! SP_ISNULL( pFrame ) )
     {
-        if( config::FrameInfos_Off != mFrameInfos )
+        if( FRAME_INFO_OFF != mFrameInfos )
         {
             ShowFrameInfos( pFrame);
         }
@@ -227,10 +229,10 @@ void FrameObserver::FrameReceived( const FramePtr pFrame )
                 Result = VmbErrorBadParameter;
                 std::cout << "unknown color processing parameter\n";
                 break;
-            case config::ColorProcessing_Off:
+            case COLOR_PROCESSING_OFF:
                 Result = TransformImage( pFrame, TransformedData, "RGB24" );
                 break;
-            case config::ColorProcessing_Matrix:
+            case COLOR_PROCESSING_MATRIX:
                 {
                     std::cout << "Color Transform\n";
                     const VmbFloat_t Matrix[] = {   0.6f, 0.3f, 0.1f, 
@@ -272,3 +274,4 @@ void FrameObserver::FrameReceived( const FramePtr pFrame )
     m_pCamera->QueueFrame( pFrame );
 }
 
+} // namespace ciavt

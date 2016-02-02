@@ -29,6 +29,8 @@
 
 #include "FrameObserver.h"
 
+namespace ciavt {
+
 typedef std::shared_ptr<class CameraController> CameraControllerPtr;
 
 class CameraController
@@ -53,7 +55,13 @@ class CameraController
   	CameraController();
   	~CameraController();
 
-    void startContinuousImageAcquisition( const config::ProgramConfig &config );
+    FrameInfo getFrameInfo() { return mFrameInfo; }
+    void setFrameInfo( FrameInfo info );
+
+    ColorProcessing getColorProcessing() { return mColorProcessing; }
+    void setColorProcessing( ColorProcessing cp );
+
+    void startContinuousImageAcquisition();
     void stopContinuousImageAcquisition();
 
     // TODO provide converted frame
@@ -69,4 +77,9 @@ class CameraController
     std::mutex						mFrameMutex;
     AVT::VmbAPI::FramePtr			mFrame;
 
+    ColorProcessing                 mColorProcessing;
+    FrameInfo                       mFrameInfo;
+
 };
+
+} // namespace ciavt

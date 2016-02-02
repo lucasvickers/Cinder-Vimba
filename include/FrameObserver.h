@@ -25,13 +25,25 @@
 
 #include <queue>
 #include "VimbaCPP/Include/VimbaCPP.h"
-#include "ProgramConfig.h"
+
+namespace ciavt {
+
+typedef enum {
+    FRAME_INFO_OFF,
+    FRAME_INFO_SHOW,
+    FRAME_INFO_AUTO
+} FrameInfo;
+
+typedef enum {
+    COLOR_PROCESSING_OFF,
+    COLOR_PROCESSING_MATRIX
+} ColorProcessing;
 
 class FrameObserver : virtual public AVT::VmbAPI::IFrameObserver
 {
 public:
     // We pass the camera that will deliver the frames to the constructor
-    FrameObserver( AVT::VmbAPI::CameraPtr camera, config::FrameInfos frameInfos, config::ColorProcessing colorProcessing );
+    FrameObserver( AVT::VmbAPI::CameraPtr camera, FrameInfo frameInfos, ColorProcessing colorProcessing );
     
     // This is our callback routine that will be executed on every received frame
     virtual void FrameReceived( const AVT::VmbAPI::FramePtr frame );
@@ -69,8 +81,8 @@ private:
         }
     };
 
-    const config::FrameInfos        mFrameInfos;
-    const config::ColorProcessing   mColorProcessing;
+    FrameInfo                       mFrameInfos;
+    ColorProcessing                 mColorProcessing;
     ValueWithState<double>          mFrameTime;
     ValueWithState<VmbUint64_t>     mFrameID;
     std::string                     mCameraID:
@@ -78,3 +90,4 @@ private:
 
 };
 
+} // namespace ciavt

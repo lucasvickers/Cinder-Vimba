@@ -28,6 +28,9 @@
 #include "ErrorCodeToMessage.h"
 #include "Common/StreamSystemInfo.h"
 
+
+namespace ciavt {
+
 using namespace AVT::VmbAPI;
 
 ApiController::ApiController()
@@ -53,7 +56,7 @@ void ApiController::shutdown()
     mSystem.Shutdown();
 }
 
-CameraControllerPtr ApiController::getCamera( const std::string &cameraID, const config::ProgramConfig &config )
+CameraControllerPtr ApiController::getCamera( const std::string &cameraID )
 {
     CameraControllerPtr cam = std::make_shared<CameraController>();
 
@@ -136,3 +139,4 @@ std::string ApiController::getVersion() const
     return os.str();
 }
 
+} // namespace ciavt

@@ -28,6 +28,8 @@
 
 #include "VmbTransform.h"
 
+namespace ciavt {
+
 VmbErrorType TransformImage( const AVT::VmbAPI::FramePtr & SourceFrame, std::vector<VmbUchar_t> & DestinationData, const std::string &DestinationFormat )
 {
     if( SP_ISNULL( SourceFrame) )
@@ -149,3 +151,5 @@ VmbErrorType TransformImage( const AVT::VmbAPI::FramePtr & SourceFrame, std::vec
     Result = static_cast<VmbErrorType>( VmbImageTransform( &SourceImage, &DestinationImage, &TransformInfo , 1 ));
     return Result;
 }
+
+} // namespace ciavt

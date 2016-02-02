@@ -6,7 +6,7 @@ using namespace ci;
 using namespace ci::app;
 
 // We'll create a new Cinder Application by deriving from the App class.
-class BasicApp : public App {
+class ListCameras : public App {
   public:
 	// Cinder will call 'mouseDrag' when the user moves the mouse while holding one of its buttons.
 	// See also: mouseMove, mouseDown, mouseUp and mouseWheel.
@@ -24,20 +24,20 @@ class BasicApp : public App {
 	std::vector<vec2> mPoints;
 };
 
-void prepareSettings( BasicApp::Settings* settings )
+void prepareSettings( ListCameras::Settings* settings )
 {
 #if defined( CINDER_ANDROID )
 	settings->setMultiTouchEnabled( false );
 #endif
 }
 
-void BasicApp::mouseDrag( MouseEvent event )
+void ListCameras::mouseDrag( MouseEvent event )
 {
 	// Store the current mouse position in the list.
 	mPoints.push_back( event.getPos() );
 }
 
-void BasicApp::keyDown( KeyEvent event )
+void ListCameras::keyDown( KeyEvent event )
 {
 	std::cout << event.getCode() << " : " << event.getChar() << std::endl;
 
@@ -60,7 +60,7 @@ void BasicApp::keyDown( KeyEvent event )
 */
 }
 
-void BasicApp::draw()
+void ListCameras::draw()
 {
 	// Clear the contents of the window. This call will clear
 	// both the color and depth buffers. 
@@ -83,4 +83,4 @@ void BasicApp::draw()
 }
 
 // This line tells Cinder to actually create and run the application.
-CINDER_APP( BasicApp, RendererGl, prepareSettings )
+CINDER_APP( ListCameras, RendererGl, prepareSettings )

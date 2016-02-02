@@ -30,8 +30,10 @@
 #include "CameraController.h"
 #include "BaseException.h"
 
+namespace ciavt {
+
 class ApiController
-{
+{ 
   public:
 
     class ApiControllerException: public BaseException
@@ -54,7 +56,7 @@ class ApiController
     void shutdown();
 
     AVT::VmbAPI::CameraPtrVector getCameraList() const;
-    CameraControllerPtr getCamera( const std::string &cameraID, const config::ProgramConfig &config );
+    CameraControllerPtr getCamera( const std::string &cameraID );
 
     std::string  getVersion() const;
 
@@ -70,3 +72,4 @@ class ApiController
     AVT::VmbAPI::VimbaSystem   & mSystem;
 };
 
+} // namespace ciavt
