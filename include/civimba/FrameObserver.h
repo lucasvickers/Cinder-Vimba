@@ -25,6 +25,7 @@
 
 #include <queue>
 #include <string>
+#include <functional>
 
 #include "VimbaCPP/Include/VimbaCPP.h"
 
@@ -35,11 +36,20 @@ namespace civimba {
 class FrameObserver : virtual public AVT::VmbAPI::IFrameObserver
 {
 public:
+
+    typedef std::function<void( const std::vector<VmbUchar_t>&, VmbUint32_t, VmbUint32_t )> FrameCallback;
+
     // We pass the camera that will deliver the frames to the constructor
-    FrameObserver( AVT::VmbAPI::CameraPtr camera, FrameInfo frameInfos, ColorProcessing colorProcessing );
+    FrameObserver( AVT::VmbAPI::CameraPtr camera,
+                   FrameCallback callback,
+                   FrameInfo frameInfo, 
+                   ColorProcessing colorProcessing );
     
     // This is our callback routine that will be executed on every received frame
     virtual void FrameReceived( const AVT::VmbAPI::FramePtr frame );
+
+    void setColorProcessing( ColorProcessing cp ) { mColorProcessing = cp; }
+    void setFrameInfo( FrameInfo info ) { mFrameInfos = info; }
 
 private:
     void ShowFrameInfos( const AVT::VmbAPI::FramePtr & frame );
@@ -79,6 +89,7 @@ private:
     ValueWithState<double>          mFrameTime;
     ValueWithState<VmbUint64_t>     mFrameID;
     std::string                     mCameraID;
+    FrameCallback                   mFrameCallback;
 };
 
 } // namespace civimba

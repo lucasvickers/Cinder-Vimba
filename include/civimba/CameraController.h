@@ -25,12 +25,15 @@
 
 #include <memory>
 #include <mutex>
+#include <functional>
 
 #include "VimbaCPP/Include/VimbaCPP.h"
 
 #include "civimba/FrameObserver.h"
 #include "civimba/Types.h"
 #include "civimba/BaseException.h"
+
+#include "cinder/Surface.h"
 
 namespace civimba {
 
@@ -67,18 +70,23 @@ class CameraController
     void startContinuousImageAcquisition();
     void stopContinuousImageAcquisition();
 
-    // TODO provide converted frame
-    AVT::VmbAPI::FramePtr getFrame();
+    cinder::Surface8uRef getCurrentFrame();
+    bool checkNewFrame();
 
   private:
 
-    void frameObservedCallback( AVT::VmbAPI::FramePtr &frame );
+    void frameObservedCallback( const std::vector<VmbUchar_t> &data,
+                                VmbUint32_t frameWidth,
+                                VmbUint32_t frameHeight );
 
     AVT::VmbAPI::CameraPtr          mCamera;
     std::unique_ptr<FrameObserver>  mFrameObserver;
 
     std::mutex                      mFrameMutex;
-    AVT::VmbAPI::FramePtr           mFrame;
+    // TODO support higher resolutions / various formats
+    cinder::Surface8uRef            mCurrentFrame;
+    std::mutex                      mCheckFrameMutex;
+    bool                            mNewFrame;
 
     ColorProcessing                 mColorProcessing;
     FrameInfo                       mFrameInfo;

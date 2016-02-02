@@ -30,12 +30,16 @@
 #include "civimba/Types.h"
 
 // TODO bring this file to my standards w/ formatting
+// TODO move to cinder logging
 
 namespace civimba {
 
 using namespace AVT::VmbAPI;
 
-FrameObserver::FrameObserver( CameraPtr camera, FrameInfo frameInfo, ColorProcessing colorProcessing )
+FrameObserver::FrameObserver( CameraPtr camera, 
+                              FrameCallback callback,
+                              FrameInfo frameInfo, 
+                              ColorProcessing colorProcessing )
     :   IFrameObserver( camera ),   
         mFrameInfos( frameInfo ),   
         mColorProcessing( colorProcessing )
@@ -227,6 +231,7 @@ void FrameObserver::FrameReceived( const FramePtr pFrame )
         {
             // could move this to a dedicated thread if it got heavy but hasn't seemed to be a problem yet
             std::vector<VmbUchar_t> TransformedData;
+            VmbUint32_t frameWidth, frameHeight;
             switch( mColorProcessing )
             {
             default:
@@ -261,6 +266,10 @@ void FrameObserver::FrameReceived( const FramePtr pFrame )
             {
                 std::cout << "Transformation failed.\n";
             }
+
+            pFrame->GetWidth( frameWidth );
+            pFrame->GetHeight( frameHeight );
+            mFrameCallback( TransformedData, frameWidth, frameHeight );
         }
         else
         {

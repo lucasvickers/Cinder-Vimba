@@ -33,7 +33,8 @@ using namespace AVT::VmbAPI;
 
 CameraController::CameraController()
 :   mColorProcessing( COLOR_PROCESSING_OFF ),
-    mFrameInfo( FRAME_INFO_AUTO )
+    mFrameInfo( FRAME_INFO_AUTO ),
+    mNewFrame( false )
 { 
     if( NUM_FRAMES < 2 ) {
         throw CameraControllerException( __FUNCTION__, "NUM_FRAMES must be > 2.", VmbErrorOther );
@@ -49,37 +50,56 @@ CameraController::~CameraController()
 
 void CameraController::setFrameInfo( FrameInfo info )
 {
-#error implement this
-    // pass to frame observer
+    if( mFrameObserver ) {
+        mFrameObserver->setFrameInfo( info );
+    }
 }
 
 void CameraController::setColorProcessing( ColorProcessing cp )
 {
-#error implement this
-    // pass to frame observer
+    if( mFrameObserver ) {
+        mFrameObserver->setColorProcessing( cp );
+    }
 }
 
-FramePtr CameraController::getFrame()
+cinder::Surface8uRef CameraController::getCurrentFrame()
 {
     // lock isn't really needed
-    //std::lock_guard<std::mutex> lock( mFrameMutex );
-    return mFrame;
+    std::lock_guard<std::mutex> lock( mFrameMutex );
+    return mCurrentFrame;
 }
 
-void CameraController::frameObservedCallback( AVT::VmbAPI::FramePtr &frame )
+bool CameraController::checkNewFrame()
 {
-    // lock isn't really needed
-    //std::lock_guard<std::mutex> lock( mFrameMutex );
-    mFrame = frame;
+    std::lock_guard<std::mutex> lock( mCheckFrameMutex );
+    bool status = mNewFrame;
+    mNewFrame = false;
+    return status;
+}
+
+void CameraController::frameObservedCallback( const std::vector<VmbUchar_t> &data,
+                                              VmbUint32_t frameWidth,
+                                              VmbUint32_t frameHeight )
+{
+    //TODO this is specific to image format, needs to be generalized
+    auto newFrame = std::shared_ptr<cinder::Surface8u>( new cinder::Surface8u( frameWidth, frameHeight, false, cinder::SurfaceChannelOrder::RGB ) );
+    
+    #error Convert Data
+    std::lock_guard<std::mutex> lock( mFrameMutex );
+    mCurrentFrame = newFrame;
 }
 
 void CameraController::startContinuousImageAcquisition()
 {
+    using namespace std::placeholders;
+
     if( mFrameObserver ) {
         throw CameraControllerException( __FUNCTION__, "Simultaneous calls to startContinuousImageAcquisition are illegal.", VmbErrorOther );
     }
     // Create a frame observer for this camera (This will be wrapped in a shared_ptr so we don't delete it)
-    mFrameObserver = std::unique_ptr<FrameObserver>( new FrameObserver( mCamera, mFrameInfo, mColorProcessing ) );
+    mFrameObserver = std::unique_ptr<FrameObserver>( 
+        new FrameObserver( mCamera, std::bind( &CameraController::frameObservedCallback, this, _1, _2, _3 ), mFrameInfo, mColorProcessing ) );
+    
     // Start streaming
     VmbErrorType res = mCamera->StartContinuousImageAcquisition( NUM_FRAMES, IFrameObserverPtr( mFrameObserver.get() ));
 
