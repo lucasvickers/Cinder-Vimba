@@ -43,24 +43,23 @@ set( BLOCK_SRC_FILES
 
 add_executable( "${EXE_NAME}" ${BLOCK_SRC_FILES} ${SRC_FILES} )
 
-find_library( VIMBA_LIBS
-    NAMES
-        libVimbaCPP.so
-        libVimbaC.so
-        libVimbaImageTransform.so
-    PATHS
-        ${VIMBA_LIB_DIR}
-)	
+find_library( VIMBACPP_LIB NAMES libVimbaCPP.so PATHS ${VIMBA_LIB_DIR} )
+find_library( VIMBA_TRANS_LIB NAMES libVimbaC.so PATHS ${VIMBA_LIB_DIR} )
+find_library( VIMBAC_LIB NAMES libVimbaImageTransform.so PATHS ${VIMBA_LIB_DIR} )
+
+list( APPEND VIMBA_LIBS ${VIMBACPP_LIB} )
+list( APPEND VIMBA_LIBS ${VIMBA_TRANS_LIB} )
+list( APPEND VIMBA_LIBS ${VIMBAC_LIB} )
 
 target_link_libraries( "${EXE_NAME}" ${VIMBA_LIBS} )
 
 # TODO figure out which one of these are not needed
-include_directories(
-    ${INC_DIR}
-    ${BLOCK_INC_DIR}
-    ${VIMBA_INC_DIR}
-    ${VIMBA_TRANSFORM_INC_DIR}
-)
+#include_directories(
+#    ${INC_DIR}
+#    ${BLOCK_INC_DIR}
+#    ${VIMBA_INC_DIR}
+#    ${VIMBA_TRANSFORM_INC_DIR}
+#)
 
 target_include_directories(
     "${EXE_NAME}"
@@ -69,8 +68,5 @@ target_include_directories(
     PUBLIC ${VIMBA_INC_DIR}
     PUBLIC ${VIMBA_TRANSFORM_INC_DIR}
 )
-
-get_property( inc_dirs DIRECTORY PROPERTY INCLUDE_DIRECTORIES )
-message( "inc_dir = ${inc_dirs}" )
 
 target_link_libraries( "${EXE_NAME}" cinder${CINDER_LIB_SUFFIX} )
