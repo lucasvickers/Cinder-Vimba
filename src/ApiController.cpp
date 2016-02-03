@@ -24,12 +24,12 @@
 #include <sstream>
 #include <iostream>
 
-#include "ApiController.h"
-#include "ErrorCodeToMessage.h"
-#include "Common/StreamSystemInfo.h"
+#include "civimba/ApiController.h"
+#include "civimba/ErrorCodeToMessage.h"
 
+#include "VimbaCPP/Include/Camera.h"
 
-namespace ciavt {
+namespace civimba {
 
 using namespace AVT::VmbAPI;
 
@@ -121,22 +121,27 @@ void ApiController::prepareCamera( CameraControllerPtr& cam )
     }
 }
 
-CameraPtrVector ApiController::getCameraList() const
+AVT::VmbAPI::CameraPtrVector ApiController::getCameraList() const
 {
-    CameraPtrVector cameras;
+    AVT::VmbAPI::CameraPtrVector cameras;
     // Get all known cameras
     if ( VmbErrorSuccess == mSystem.GetCameras( cameras ) ) {
         // And return them
         return cameras;
     }
-    return CameraPtrVector();
+    return ::AVT::VmbAPI::CameraPtrVector();
 }
 
 std::string ApiController::getVersion() const
 {
-    std::ostringstream  os;
-    os << mSystem;
-    return os.str();
+    std::stringstream  ss;
+
+    VmbVersionInfo_t info;
+    if (VmbErrorSuccess != mSystem.QueryVersion( info )) {
+        throw std::exception();
+    }
+    ss << info.major << "." << info.minor << "." << info.patch;
+    return ss.str();
 }
 
-} // namespace ciavt
+} // namespace civimba

@@ -40,6 +40,7 @@
 #define MAKE_STRING_LITERAL_(s) s
 #endif
 #define MAKE_STRING_LITERAL(s) MAKE_STRING_LITERAL_(s)
+// TODO move this into civimba ?
 namespace AVT {
 namespace VmbAPI {
 inline string_type ErrorCodeToMessage( VmbError_t eError )

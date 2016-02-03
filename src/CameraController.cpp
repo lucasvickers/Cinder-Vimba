@@ -21,10 +21,10 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "CameraController.h"
-#include "ErrorCodeToMessage.h"
+#include "civimba/CameraController.h"
+#include "civimba/ErrorCodeToMessage.h"
 
-namespace ciavt {
+namespace civimba {
 
 using namespace AVT::VmbAPI;
 
@@ -32,61 +32,59 @@ using namespace AVT::VmbAPI;
 #define NUM_FRAMES 3
 
 CameraController::CameraController()
-: mCamera( nullptr ),
-  mFrame( nullptr ),
-  mColorProcessing( COLOR_PROCESSING_OFF ),
-  mFrameInfo( FRAME_INFO_AUTO )
+:   mColorProcessing( COLOR_PROCESSING_OFF ),
+    mFrameInfo( FRAME_INFO_AUTO )
 { 
-	if( NUM_FRAMES < 2 ) {
-		throw CameraControllerException( __FUNCTION__, "NUM_FRAMES must be > 2.", VmbErrorOther );
-	}
+    if( NUM_FRAMES < 2 ) {
+        throw CameraControllerException( __FUNCTION__, "NUM_FRAMES must be > 2.", VmbErrorOther );
+    }
 }
 
 CameraController::~CameraController()
 {
-	if( mCamera ) {
-		mCamera->Close();
-	}
+    if( mCamera ) {
+        mCamera->Close();
+    }
 }
 
 void CameraController::setFrameInfo( FrameInfo info )
 {
 #error implement this
-	// pass to frame observer
+    // pass to frame observer
 }
 
 void CameraController::setColorProcessing( ColorProcessing cp )
 {
 #error implement this
-	// pass to frame observer
+    // pass to frame observer
 }
 
-FramePtr CameraController::getCurrFrame()
+FramePtr CameraController::getFrame()
 {
-	// lock isn't really needed
-	//std::lock_guard<std::mutex> lock( mFrameMutex );
-	return mCurrFrame;
+    // lock isn't really needed
+    //std::lock_guard<std::mutex> lock( mFrameMutex );
+    return mFrame;
 }
 
-void frameObservedCallback( AVT::VmbAPI::FramePtr &frame )
+void CameraController::frameObservedCallback( AVT::VmbAPI::FramePtr &frame )
 {
-	// lock isn't really needed
-	//std::lock_guard<std::mutex> lock( mFrameMutex );
-	mFrame = frame;
+    // lock isn't really needed
+    //std::lock_guard<std::mutex> lock( mFrameMutex );
+    mFrame = frame;
 }
 
 void CameraController::startContinuousImageAcquisition()
 {
-	if( mFrameObserver ) {
-		throw CameraControllerException( __FUNCTION__, "Simultaneous calls to startContinuousImageAcquisition are illegal.", VmbErrorOther );
-	}
-	// Create a frame observer for this camera (This will be wrapped in a shared_ptr so we don't delete it)
+    if( mFrameObserver ) {
+        throw CameraControllerException( __FUNCTION__, "Simultaneous calls to startContinuousImageAcquisition are illegal.", VmbErrorOther );
+    }
+    // Create a frame observer for this camera (This will be wrapped in a shared_ptr so we don't delete it)
     mFrameObserver = std::unique_ptr<FrameObserver>( new FrameObserver( mCamera, mFrameInfo, mColorProcessing ) );
     // Start streaming
     VmbErrorType res = mCamera->StartContinuousImageAcquisition( NUM_FRAMES, IFrameObserverPtr( mFrameObserver.get() ));
 
     if( res != VmbErrorSuccess ) {
-		throw CameraControllerException( __FUNCTION__, ErrorCodeToMessage( res ), VmbErrorOther );    	
+        throw CameraControllerException( __FUNCTION__, ErrorCodeToMessage( res ), VmbErrorOther );      
     }
 }
     
@@ -98,4 +96,4 @@ void CameraController::stopContinuousImageAcquisition()
     mFrameObserver.reset();
 }
 
-} // namespace ciavt
+} // namespace civimba

@@ -27,10 +27,10 @@
 
 #include "VimbaCPP/Include/VimbaCPP.h"
 
-#include "CameraController.h"
-#include "BaseException.h"
+#include "civimba/CameraController.h"
+#include "civimba/BaseException.h"
 
-namespace ciavt {
+namespace civimba {
 
 class ApiController
 { 
@@ -72,4 +72,4 @@ class ApiController
     AVT::VmbAPI::VimbaSystem   & mSystem;
 };
 
-} // namespace ciavt
+} // namespace civimba

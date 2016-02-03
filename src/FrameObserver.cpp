@@ -25,20 +25,20 @@
 #include <iomanip>
 #include <time.h>
 
-#include "FrameObserver.h"
-
-#include "TransformImage.h"
+#include "civimba/FrameObserver.h"
+#include "civimba/TransformImage.h"
+#include "civimba/Types.h"
 
 // TODO bring this file to my standards w/ formatting
 
-namespace ciavt {
+namespace civimba {
 
 using namespace AVT::VmbAPI;
 
-FrameObserver::FrameObserver( CameraPtr camera, FrameInfo frameInfos, ColorProcessing colorProcessing )
-    :   IFrameObserver( camera )
-    ,   mFrameInfos( frameInfos )
-    ,   mColorProcessing( colorProcessing )
+FrameObserver::FrameObserver( CameraPtr camera, FrameInfo frameInfo, ColorProcessing colorProcessing )
+    :   IFrameObserver( camera ),   
+        mFrameInfos( frameInfo ),   
+        mColorProcessing( colorProcessing )
 { }
 
 double FrameObserver::GetTime()
@@ -58,7 +58,7 @@ void PrintFrameInfo( const FramePtr &pFrame )
     VmbUint32_t     nWidth = 0;
     VmbErrorType    res;
     res = pFrame->GetWidth(nWidth);
-    if( VmbErrorSuccess == res ) 
+    if( VmbErrorSuccess == res ) {
         std::cout << nWidth;
     } else {
         std::cout << "?";
@@ -184,10 +184,14 @@ void FrameObserver::ShowFrameInfos( const FramePtr &pFrame )
         std::cout << "Camera ID:" << mCameraID;
         std::cout << " Frame ID:";
 
-        bFrameIdValid ? std::cout << nFrameID : std::cout << "?";
+        bFrameIDValid ? std::cout << nFrameID : std::cout << "?";
 
         std::cout << " Status:";
-        bFrameStatusValid ? PrintFrameStatus( eFrameStatus) : std::cout << "?";
+        if( bFrameStatusValid ) {
+            PrintFrameStatus( eFrameStatus);
+        } else {
+            std::cout << "?";
+        }
 
         PrintFrameInfo( pFrame );
         
@@ -252,9 +256,6 @@ void FrameObserver::FrameReceived( const FramePtr pFrame )
                                       <<"G = 0x"<<std::setw(2)<<(int)TransformedData[1]<<" "
                                       <<"B = 0x"<<std::setw(2)<<(int)TransformedData[2]<<std::dec<<"\n";
                 std::cout.fill( old_fill_char );
-
-                // TODO make the callback
-                mCallback( TransformedData );
             }
             else
             {
@@ -274,4 +275,4 @@ void FrameObserver::FrameReceived( const FramePtr pFrame )
     m_pCamera->QueueFrame( pFrame );
 }
 
-} // namespace ciavt
+} // namespace civimba

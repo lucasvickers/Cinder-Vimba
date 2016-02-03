@@ -27,8 +27,9 @@
 #include <string>
 
 #include "VmbTransform.h"
+#include "VimbaCPP/Include/VimbaCPP.h"
 
-namespace ciavt {
+namespace civimba {
 
 VmbErrorType TransformImage( const AVT::VmbAPI::FramePtr & SourceFrame, std::vector<VmbUchar_t> & DestinationData, const std::string &DestinationFormat )
 {
@@ -152,4 +153,4 @@ VmbErrorType TransformImage( const AVT::VmbAPI::FramePtr & SourceFrame, std::vec
     return Result;
 }
 
-} // namespace ciavt
+} // namespace civimba

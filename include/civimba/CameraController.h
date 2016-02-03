@@ -24,12 +24,15 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 
 #include "VimbaCPP/Include/VimbaCPP.h"
 
-#include "FrameObserver.h"
+#include "civimba/FrameObserver.h"
+#include "civimba/Types.h"
+#include "civimba/BaseException.h"
 
-namespace ciavt {
+namespace civimba {
 
 typedef std::shared_ptr<class CameraController> CameraControllerPtr;
 
@@ -52,8 +55,8 @@ class CameraController
         { }
     };
 
-  	CameraController();
-  	~CameraController();
+    CameraController();
+    ~CameraController();
 
     FrameInfo getFrameInfo() { return mFrameInfo; }
     void setFrameInfo( FrameInfo info );
@@ -71,15 +74,15 @@ class CameraController
 
     void frameObservedCallback( AVT::VmbAPI::FramePtr &frame );
 
-    AVT::VmbAPI::CameraPtr       	mCamera;
-    std::unique_ptr<FrameObserver> 	mFrameObserver;
+    AVT::VmbAPI::CameraPtr          mCamera;
+    std::unique_ptr<FrameObserver>  mFrameObserver;
 
-    std::mutex						mFrameMutex;
-    AVT::VmbAPI::FramePtr			mFrame;
+    std::mutex                      mFrameMutex;
+    AVT::VmbAPI::FramePtr           mFrame;
 
     ColorProcessing                 mColorProcessing;
     FrameInfo                       mFrameInfo;
 
 };
 
-} // namespace ciavt
+} // namespace civimba

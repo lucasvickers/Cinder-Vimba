@@ -28,7 +28,7 @@
 
 #include "VimbaCPP/Include/VimbaCPP.h"
 
-namespace ciavt {
+namespace civimba {
 
 class BaseException: public std::exception
 {
@@ -93,4 +93,4 @@ class BaseException: public std::exception
     }
 };
 
-} // namespace ciavt
+} // namespace civimba

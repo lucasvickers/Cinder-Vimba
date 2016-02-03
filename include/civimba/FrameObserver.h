@@ -24,20 +24,13 @@
 #pragma once
 
 #include <queue>
+#include <string>
+
 #include "VimbaCPP/Include/VimbaCPP.h"
 
-namespace ciavt {
+#include "civimba/Types.h"
 
-typedef enum {
-    FRAME_INFO_OFF,
-    FRAME_INFO_SHOW,
-    FRAME_INFO_AUTO
-} FrameInfo;
-
-typedef enum {
-    COLOR_PROCESSING_OFF,
-    COLOR_PROCESSING_MATRIX
-} ColorProcessing;
+namespace civimba {
 
 class FrameObserver : virtual public AVT::VmbAPI::IFrameObserver
 {
@@ -85,9 +78,7 @@ private:
     ColorProcessing                 mColorProcessing;
     ValueWithState<double>          mFrameTime;
     ValueWithState<VmbUint64_t>     mFrameID;
-    std::string                     mCameraID:
-
-
+    std::string                     mCameraID;
 };
 
-} // namespace ciavt
+} // namespace civimba
