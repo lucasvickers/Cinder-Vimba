@@ -29,14 +29,16 @@
 #include "VimbaCPP/Include/VimbaCPP.h"
 #include "VmbTransform.h"
 
+#include "cinder/Surface.h"
+
 namespace civimba {
 
 VmbErrorType TransformImage( const AVT::VmbAPI::FramePtr &SourceFrame, 
-                             std::vector<VmbUchar_t> &DestinationData, 
+                             cinder::Surface8uRef &DestinationSurface,
                              const std::string &DestinationFormat );
 
 VmbErrorType TransformImage( const AVT::VmbAPI::FramePtr &SourceFrame, 
-                             std::vector<VmbUchar_t> &DestinationData, 
+                             cinder::Surface8uRef &DestinationSurface,
                              const std::string &DestinationFormat, 
                              const VmbFloat_t *Matrix );
 

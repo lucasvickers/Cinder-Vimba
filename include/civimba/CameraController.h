@@ -75,9 +75,7 @@ class CameraController
 
   private:
 
-    void frameObservedCallback( const std::vector<VmbUchar_t> &data,
-                                VmbUint32_t frameWidth,
-                                VmbUint32_t frameHeight );
+    void frameObservedCallback( cinder::Surface8uRef &frame );
 
     AVT::VmbAPI::CameraPtr  mCamera;
     FrameObserver           *mFrameObserver;

@@ -78,19 +78,12 @@ bool CameraController::checkNewFrame()
     return status;
 }
 
-void CameraController::frameObservedCallback( const std::vector<VmbUchar_t> &vimbaData,
-                                              VmbUint32_t frameWidth,
-                                              VmbUint32_t frameHeight )
+void CameraController::frameObservedCallback( cinder::Surface8uRef &frame )
 {
-    //TODO this is specific to image format, needs to be generalized
-    auto newFrame = std::shared_ptr<cinder::Surface8u>( new cinder::Surface8u( frameWidth, frameHeight, false, cinder::SurfaceChannelOrder::RGB ) );
-    memcpy( newFrame->getData(), &vimbaData.front(), frameWidth * frameHeight * sizeof( uint8_t ) * 3 );
-
-    // lock and swap pointers
+    // lock and swap surfaces
     std::lock_guard<std::mutex> lock( mFrameMutex );
-    mCurrentFrame = newFrame;
+    mCurrentFrame = frame;
     mNewFrame = true;
-    //std::cout << "Callback on thread " << std::this_thread::get_id() << std::endl;
 }
 
 void CameraController::startContinuousImageAcquisition()
@@ -102,7 +95,7 @@ void CameraController::startContinuousImageAcquisition()
         return;
     }
     // Create a frame observer for this camera (This will be wrapped in a shared_ptr so we don't delete it)
-    mFrameObserver = new FrameObserver( mCamera, std::bind( &CameraController::frameObservedCallback, this, _1, _2, _3 ), mFrameInfo, mColorProcessing );
+    mFrameObserver = new FrameObserver( mCamera, std::bind( &CameraController::frameObservedCallback, this, _1 ), mFrameInfo, mColorProcessing );
     
     // Start streaming.  FrameObserver* gets managed elsewhere
     VmbErrorType res = mCamera->StartContinuousImageAcquisition( NUM_FRAMES, IFrameObserverPtr( mFrameObserver ));

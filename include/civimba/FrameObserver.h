@@ -30,6 +30,7 @@
 #include "VimbaCPP/Include/VimbaCPP.h"
 
 #include "civimba/Types.h"
+#include "cinder/Surface.h"
 
 namespace civimba {
 
@@ -37,7 +38,7 @@ class FrameObserver : virtual public AVT::VmbAPI::IFrameObserver
 {
 public:
 
-    typedef std::function<void( const std::vector<VmbUchar_t>&, VmbUint32_t, VmbUint32_t )> FrameCallback;
+    typedef std::function<void( cinder::Surface8uRef& )> FrameCallback;
 
     // We pass the camera that will deliver the frames to the constructor
     FrameObserver( AVT::VmbAPI::CameraPtr camera,

@@ -230,9 +230,14 @@ void FrameObserver::FrameReceived( const FramePtr pFrame )
 
         if( VmbErrorSuccess == Result && VmbFrameStatusComplete == status)
         {
-            // could move this to a dedicated thread if it got heavy but hasn't seemed to be a problem yet
-            std::vector<VmbUchar_t> TransformedData;
+
+            //TODO this is specific to image format, needs to be generalized
+            cinder::Surface8uRef newFrame;
+            //memcpy( newFrame->getData(), &vimbaData.front(), frameWidth * frameHeight * sizeof( uint8_t ) * 3 );
             VmbUint32_t frameWidth, frameHeight;
+            pFrame->GetWidth(frameWidth);
+            pFrame->GetHeight(frameHeight);
+
             switch( mColorProcessing )
             {
             default:
@@ -240,7 +245,8 @@ void FrameObserver::FrameReceived( const FramePtr pFrame )
                 std::cout << "unknown color processing parameter\n";
                 break;
             case COLOR_PROCESSING_OFF:
-                Result = TransformImage( pFrame, TransformedData, "RGB24" );
+                newFrame = std::shared_ptr<cinder::Surface8u>( new cinder::Surface8u( frameWidth, frameHeight, false, cinder::SurfaceChannelOrder::RGB ) );
+                Result = TransformImage( pFrame, newFrame, "RGB24" );
                 break;
             case COLOR_PROCESSING_MATRIX:
                 {
@@ -248,30 +254,21 @@ void FrameObserver::FrameReceived( const FramePtr pFrame )
                     const VmbFloat_t Matrix[] = {   0.6f, 0.3f, 0.1f, 
                                                     0.6f, 0.3f, 0.1f, 
                                                     0.6f, 0.3f, 0.1f};
-                    Result = TransformImage( pFrame, TransformedData,"BGR24", Matrix );
+                    newFrame = std::shared_ptr<cinder::Surface8u>( new cinder::Surface8u( frameWidth, frameHeight, false, cinder::SurfaceChannelOrder::BGR ) );
+                    Result = TransformImage( pFrame, newFrame,"BGR24", Matrix );
                 }
                 break;
 
             }
 
             // TODO probably don't need this unless we're displaying frame info
-            if( VmbErrorSuccess == Result && TransformedData.size() >= 3 )
+            if( VmbErrorSuccess == Result )
             {
-                /*char old_fill_char = std::cout.fill('0');
-                std::cout << std::hex <<"R = 0x"<<std::setw(2)<<(int)TransformedData[0]<<" "
-                                      <<"G = 0x"<<std::setw(2)<<(int)TransformedData[1]<<" "
-                                      <<"B = 0x"<<std::setw(2)<<(int)TransformedData[2]<<std::dec<<"\n";
-                std::cout.fill( old_fill_char );*/
+                mFrameCallback( newFrame );
             }
             else
             {
                 std::cout << "Transformation failed.\n";
-            }
-
-            if( VmbErrorSuccess == Result ) {
-                pFrame->GetWidth(frameWidth);
-                pFrame->GetHeight(frameHeight);
-                mFrameCallback(TransformedData, frameWidth, frameHeight);
             }
         }
         else

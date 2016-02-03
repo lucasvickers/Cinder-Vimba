@@ -29,7 +29,7 @@
 namespace civimba {
 
 VmbErrorType TransformImage( const AVT::VmbAPI::FramePtr &SourceFrame, 
-                             std::vector<VmbUchar_t> &DestinationData, 
+                             cinder::Surface8uRef &DestinationSurface,
                              const std::string &DestinationFormat )
 {
     if( SP_ISNULL( SourceFrame) )
@@ -38,7 +38,7 @@ VmbErrorType TransformImage( const AVT::VmbAPI::FramePtr &SourceFrame,
     }
     VmbErrorType        Result;
     VmbPixelFormatType  InputFormat;
-    VmbUint32_t         InputWidth,InputHeight;
+    VmbUint32_t         InputWidth, InputHeight;
     Result = SP_ACCESS( SourceFrame )->GetPixelFormat( InputFormat ) ;
     if( VmbErrorSuccess != Result )
     {
@@ -54,6 +54,7 @@ VmbErrorType TransformImage( const AVT::VmbAPI::FramePtr &SourceFrame,
     {
         return Result;
     }
+
     // Prepare source image
     VmbImage SourceImage;
     SourceImage.Size = sizeof( SourceImage );
@@ -69,6 +70,7 @@ VmbErrorType TransformImage( const AVT::VmbAPI::FramePtr &SourceFrame,
         return Result;
     }
     SourceImage.Data = DataBegin;
+
     // Prepare destination image
     VmbImage DestinationImage;
     DestinationImage.Size = sizeof( DestinationImage );
@@ -77,16 +79,17 @@ VmbErrorType TransformImage( const AVT::VmbAPI::FramePtr &SourceFrame,
     {
         return Result;
     }
-    const size_t ByteCount = ( DestinationImage.ImageInfo.PixelInfo.BitsPerPixel * InputWidth* InputHeight ) / 8 ;
-    DestinationData.resize( ByteCount );
-    DestinationImage.Data = &*DestinationData.begin();
+    const size_t ByteCount = ( DestinationImage.ImageInfo.PixelInfo.BitsPerPixel * InputWidth * InputHeight ) / 8 ;
+    //DestinationData.resize( ByteCount );
+    //DestinationImage.Data = &*DestinationData.begin();
+    DestinationImage.Data = DestinationSurface->getData();
     // Transform data
     Result = static_cast<VmbErrorType>( VmbImageTransform( &SourceImage, &DestinationImage, NULL , 0 ));
     return Result;
 }
 
 VmbErrorType TransformImage( const AVT::VmbAPI::FramePtr &SourceFrame, 
-                             std::vector<VmbUchar_t> &DestinationData, 
+                             cinder::Surface8uRef &DestinationSurface,
                              const std::string &DestinationFormat, 
                              const VmbFloat_t *Matrix )
 {
@@ -139,9 +142,11 @@ VmbErrorType TransformImage( const AVT::VmbAPI::FramePtr &SourceFrame,
     {
         return Result;
     }
-    const size_t ByteCount = ( DestinationImage.ImageInfo.PixelInfo.BitsPerPixel * InputWidth* InputHeight ) / 8 ;
-    DestinationData.resize( ByteCount );
-    DestinationImage.Data = &*DestinationData.begin();
+    const size_t ByteCount = ( DestinationImage.ImageInfo.PixelInfo.BitsPerPixel * InputWidth * InputHeight ) / 8 ;
+    //DestinationData.resize( ByteCount );
+    //DestinationImage.Data = &*DestinationData.begin();
+    DestinationImage.Data = DestinationSurface->getData();
+
     // Setup Transform parameter
 
     // Transform data
