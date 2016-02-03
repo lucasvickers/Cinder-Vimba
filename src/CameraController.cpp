@@ -30,16 +30,16 @@ namespace civimba {
 
 using namespace AVT::VmbAPI;
 
-// TODO move this to JSON config.  You'll want it to be at least 2
-#define NUM_FRAMES 4
-
-CameraController::CameraController()
+CameraController::CameraController( uint32_t numberFrames )
 :   mColorProcessing( COLOR_PROCESSING_OFF ),
     mFrameInfo( FRAME_INFO_AUTO ),
     mNewFrame( false ),
-    mFrameObserver( nullptr )
-{ 
-
+    mFrameObserver( nullptr ),
+    mNumberFrames( numberFrames )
+{
+    if( mNumberFrames == 0 ) {
+        throw CameraControllerException( __FUNCTION__, "CameraController needs at least one frame.", VmbErrorBadParameter );
+    }
 }
 
 CameraController::~CameraController()

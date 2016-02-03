@@ -58,7 +58,7 @@ class CameraController
         { }
     };
 
-    CameraController();
+    CameraController( uint32_t numberFrames = 5 );
     ~CameraController();
 
     FrameInfo getFrameInfo() { return mFrameInfo; }
@@ -89,6 +89,7 @@ class CameraController
     ColorProcessing         mColorProcessing;
     FrameInfo               mFrameInfo;
 
+    uint32_t                mNumberFrames;
 };
 
 } // namespace civimba
