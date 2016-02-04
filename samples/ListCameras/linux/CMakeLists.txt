@@ -7,6 +7,7 @@ include( ${CINDER_DIR}/linux/cmake/Cinder.cmake )
 
 project( ListCameras )
 
+# various needed directories
 get_filename_component( SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../src" ABSOLUTE )
 get_filename_component( BLOCK_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../.." ABSOLUTE )
 get_filename_component( BLOCK_INC_DIR "${BLOCK_ROOT}/include/civimba" ABSOLUTE )
@@ -16,7 +17,6 @@ get_filename_component( VIMBA_TRANSFORM_INC_DIR "${BLOCK_ROOT}/include/VimbaImag
 
 get_filename_component( BLOCK_SRC_DIR "${BLOCK_ROOT}/src" ABSOLUTE )
 
-# best if these are in a global .so search path, but for good measure
 # TODO figure out the RPATH.  cmake rpath wiki
 get_filename_component( VIMBA_LIB_DIR "${BLOCK_ROOT}/libs/linux/x64/" ABSOLUTE )
 
@@ -30,6 +30,7 @@ endif()
 # Use PROJECT_NAME since CMAKE_PROJET_NAME returns the top-level project name.
 set( EXE_NAME ${PROJECT_NAME} )
 
+# project source files
 set( SRC_FILES
     ${SRC_DIR}/ListCameras.cpp
 )
@@ -41,6 +42,17 @@ set( BLOCK_SRC_FILES
 )
 
 add_executable( "${EXE_NAME}" ${BLOCK_SRC_FILES} ${SRC_FILES} )
+
+find_library( VIMBA_LIBS
+    NAMES
+        libVimbaCPP.so
+        libVimbaC.so
+        libVimbaImageTransform.so
+    PATHS
+        ${VIMBA_LIB_DIR}
+)	
+
+target_link_libraries( "${EXE_NAME}" ${VIMBA_LIBS} )
 
 # TODO figure out which one of these are not needed
 include_directories(
