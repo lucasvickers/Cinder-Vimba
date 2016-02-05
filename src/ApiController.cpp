@@ -121,7 +121,7 @@ void ApiController::prepareCamera( CameraControllerPtr& cam )
     }
 }
 
-AVT::VmbAPI::CameraPtrVector ApiController::getCameraList() const
+std::vector<AVT::VmbAPI::CameraPtr> ApiController::getCameraList() const
 {
     AVT::VmbAPI::CameraPtrVector cameras;
     // Get all known cameras
@@ -129,7 +129,7 @@ AVT::VmbAPI::CameraPtrVector ApiController::getCameraList() const
         // And return them
         return cameras;
     }
-    return ::AVT::VmbAPI::CameraPtrVector();
+    return std::vector<CameraPtr>();
 }
 
 std::string ApiController::getVersion() const

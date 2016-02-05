@@ -55,7 +55,7 @@ class ApiController
     void startup();
     void shutdown();
 
-    AVT::VmbAPI::CameraPtrVector getCameraList() const;
+    std::vector<AVT::VmbAPI::CameraPtr> getCameraList() const;
     CameraControllerPtr getCamera( const std::string &cameraID );
 
     std::string  getVersion() const;

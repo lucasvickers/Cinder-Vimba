@@ -77,14 +77,20 @@ bool CameraController::checkNewFrame()
     return status;
 }
 
-void CameraController::frameObservedCallback( const std::vector<VmbUchar_t> &data,
+void CameraController::frameObservedCallback( const std::vector<VmbUchar_t> &vimbaData,
                                               VmbUint32_t frameWidth,
                                               VmbUint32_t frameHeight )
 {
     //TODO this is specific to image format, needs to be generalized
     auto newFrame = std::shared_ptr<cinder::Surface8u>( new cinder::Surface8u( frameWidth, frameHeight, false, cinder::SurfaceChannelOrder::RGB ) );
     
-    #error Convert Data
+    uint8_t *surfData = newFrame->getData();
+    for( auto val : vimbaData ) {
+        *surfData = val;
+        ++surfData;
+    }
+    
+    // lock and swap pointers
     std::lock_guard<std::mutex> lock( mFrameMutex );
     mCurrentFrame = newFrame;
 }
