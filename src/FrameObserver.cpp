@@ -40,7 +40,8 @@ FrameObserver::FrameObserver( CameraPtr camera,
                               FrameCallback callback,
                               FrameInfo frameInfo, 
                               ColorProcessing colorProcessing )
-    :   IFrameObserver( camera ),   
+    :   IFrameObserver( camera ),
+        mFrameCallback( callback ),
         mFrameInfos( frameInfo ),   
         mColorProcessing( colorProcessing )
 { }
@@ -256,20 +257,22 @@ void FrameObserver::FrameReceived( const FramePtr pFrame )
             // TODO probably don't need this unless we're displaying frame info
             if( VmbErrorSuccess == Result && TransformedData.size() >= 3 )
             {
-                char old_fill_char = std::cout.fill('0');
+                /*char old_fill_char = std::cout.fill('0');
                 std::cout << std::hex <<"R = 0x"<<std::setw(2)<<(int)TransformedData[0]<<" "
                                       <<"G = 0x"<<std::setw(2)<<(int)TransformedData[1]<<" "
                                       <<"B = 0x"<<std::setw(2)<<(int)TransformedData[2]<<std::dec<<"\n";
-                std::cout.fill( old_fill_char );
+                std::cout.fill( old_fill_char );*/
             }
             else
             {
                 std::cout << "Transformation failed.\n";
             }
 
-            pFrame->GetWidth( frameWidth );
-            pFrame->GetHeight( frameHeight );
-            mFrameCallback( TransformedData, frameWidth, frameHeight );
+            if( VmbErrorSuccess == Result ) {
+                pFrame->GetWidth(frameWidth);
+                pFrame->GetHeight(frameHeight);
+                mFrameCallback(TransformedData, frameWidth, frameHeight);
+            }
         }
         else
         {

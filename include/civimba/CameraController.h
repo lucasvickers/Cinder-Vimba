@@ -37,7 +37,7 @@
 
 namespace civimba {
 
-typedef std::shared_ptr<class CameraController> CameraControllerPtr;
+typedef std::shared_ptr<class CameraController> CameraControllerRef;
 
 class CameraController
 {
@@ -79,17 +79,17 @@ class CameraController
                                 VmbUint32_t frameWidth,
                                 VmbUint32_t frameHeight );
 
-    AVT::VmbAPI::CameraPtr          mCamera;
-    std::unique_ptr<FrameObserver>  mFrameObserver;
+    AVT::VmbAPI::CameraPtr  mCamera;
+    FrameObserver           *mFrameObserver;
 
-    std::mutex                      mFrameMutex;
-    // TODO support higher resolutions / various formats
-    cinder::Surface8uRef            mCurrentFrame;
-    std::mutex                      mCheckFrameMutex;
-    bool                            mNewFrame;
+    std::mutex              mFrameMutex;
+    // TODO support other formats
+    cinder::Surface8uRef    mCurrentFrame;
+    std::mutex              mCheckFrameMutex;
+    bool                    mNewFrame;
 
-    ColorProcessing                 mColorProcessing;
-    FrameInfo                       mFrameInfo;
+    ColorProcessing         mColorProcessing;
+    FrameInfo               mFrameInfo;
 
 };
 

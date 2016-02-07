@@ -56,9 +56,9 @@ void ApiController::shutdown()
     mSystem.Shutdown();
 }
 
-CameraControllerPtr ApiController::getCamera( const std::string &cameraID )
+CameraControllerRef ApiController::getCamera( const std::string &cameraID )
 {
-    CameraControllerPtr cam = std::make_shared<CameraController>();
+    CameraControllerRef cam = std::make_shared<CameraController>();
 
     VmbErrorType res = mSystem.OpenCameraByID( cameraID.c_str(), VmbAccessModeFull, cam->mCamera );
     if( VmbErrorSuccess != res ) {
@@ -85,7 +85,7 @@ CameraControllerPtr ApiController::getCamera( const std::string &cameraID )
 }
 
 /**setting a feature to maximum value that is a multiple of 2*/
-VmbErrorType ApiController::setIntFeatureValueModulo2(  CameraControllerPtr& cam, const char* const& Name )
+VmbErrorType ApiController::setIntFeatureValueModulo2(  CameraControllerRef& cam, const char* const& Name )
 {
     VmbErrorType        result;
     FeaturePtr          feature;
@@ -108,7 +108,7 @@ VmbErrorType ApiController::setIntFeatureValueModulo2(  CameraControllerPtr& cam
 }
 
 /**prepare camera so that the delivered image will not fail in image transform*/
-void ApiController::prepareCamera( CameraControllerPtr& cam )
+void ApiController::prepareCamera( CameraControllerRef& cam )
 {
     VmbErrorType result;
     result = setIntFeatureValueModulo2( cam, "Width" );

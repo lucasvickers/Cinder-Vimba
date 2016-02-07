@@ -56,17 +56,17 @@ class ApiController
     void shutdown();
 
     std::vector<AVT::VmbAPI::CameraPtr> getCameraList() const;
-    CameraControllerPtr getCamera( const std::string &cameraID );
+    CameraControllerRef getCamera( const std::string &cameraID );
 
     std::string  getVersion() const;
 
   private:
     // configure camera settings to ensure compatability with TransformImage
     // throws
-    void prepareCamera( CameraControllerPtr& cam );
+    void prepareCamera( CameraControllerRef& cam );
 
     // does not throw
-    VmbErrorType setIntFeatureValueModulo2( CameraControllerPtr& cam, const char* const& Name );
+    VmbErrorType setIntFeatureValueModulo2( CameraControllerRef& cam, const char* const& Name );
 
     // A reference to our Vimba singleton
     AVT::VmbAPI::VimbaSystem   & mSystem;

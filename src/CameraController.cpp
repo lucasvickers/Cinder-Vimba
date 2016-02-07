@@ -24,21 +24,22 @@
 #include "civimba/CameraController.h"
 #include "civimba/ErrorCodeToMessage.h"
 
+#include <thread>
+
 namespace civimba {
 
 using namespace AVT::VmbAPI;
 
 // TODO move this to JSON config.  You'll want it to be at least 2
-#define NUM_FRAMES 3
+#define NUM_FRAMES 4
 
 CameraController::CameraController()
 :   mColorProcessing( COLOR_PROCESSING_OFF ),
     mFrameInfo( FRAME_INFO_AUTO ),
-    mNewFrame( false )
+    mNewFrame( false ),
+    mFrameObserver( nullptr )
 { 
-    if( NUM_FRAMES < 2 ) {
-        throw CameraControllerException( __FUNCTION__, "NUM_FRAMES must be > 2.", VmbErrorOther );
-    }
+
 }
 
 CameraController::~CameraController()
@@ -83,16 +84,13 @@ void CameraController::frameObservedCallback( const std::vector<VmbUchar_t> &vim
 {
     //TODO this is specific to image format, needs to be generalized
     auto newFrame = std::shared_ptr<cinder::Surface8u>( new cinder::Surface8u( frameWidth, frameHeight, false, cinder::SurfaceChannelOrder::RGB ) );
-    
-    uint8_t *surfData = newFrame->getData();
-    for( auto val : vimbaData ) {
-        *surfData = val;
-        ++surfData;
-    }
-    
+    memcpy( newFrame->getData(), &vimbaData.front(), frameWidth * frameHeight * sizeof( uint8_t ) * 3 );
+
     // lock and swap pointers
     std::lock_guard<std::mutex> lock( mFrameMutex );
     mCurrentFrame = newFrame;
+    mNewFrame = true;
+    //std::cout << "Callback on thread " << std::this_thread::get_id() << std::endl;
 }
 
 void CameraController::startContinuousImageAcquisition()
@@ -100,14 +98,14 @@ void CameraController::startContinuousImageAcquisition()
     using namespace std::placeholders;
 
     if( mFrameObserver ) {
-        throw CameraControllerException( __FUNCTION__, "Simultaneous calls to startContinuousImageAcquisition are illegal.", VmbErrorOther );
+        // TODO log that we ignored this
+        return;
     }
     // Create a frame observer for this camera (This will be wrapped in a shared_ptr so we don't delete it)
-    mFrameObserver = std::unique_ptr<FrameObserver>( 
-        new FrameObserver( mCamera, std::bind( &CameraController::frameObservedCallback, this, _1, _2, _3 ), mFrameInfo, mColorProcessing ) );
+    mFrameObserver = new FrameObserver( mCamera, std::bind( &CameraController::frameObservedCallback, this, _1, _2, _3 ), mFrameInfo, mColorProcessing );
     
-    // Start streaming
-    VmbErrorType res = mCamera->StartContinuousImageAcquisition( NUM_FRAMES, IFrameObserverPtr( mFrameObserver.get() ));
+    // Start streaming.  FrameObserver* gets managed elsewhere
+    VmbErrorType res = mCamera->StartContinuousImageAcquisition( NUM_FRAMES, IFrameObserverPtr( mFrameObserver ));
 
     if( res != VmbErrorSuccess ) {
         throw CameraControllerException( __FUNCTION__, ErrorCodeToMessage( res ), VmbErrorOther );      
@@ -119,7 +117,7 @@ void CameraController::stopContinuousImageAcquisition()
 {
     // Stop streaming
     mCamera->StopContinuousImageAcquisition();
-    mFrameObserver.reset();
+    mFrameObserver = nullptr;
 }
 
 } // namespace civimba
