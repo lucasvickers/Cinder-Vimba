@@ -67,11 +67,23 @@ class CameraController
     ColorProcessing getColorProcessing() { return mColorProcessing; }
     void setColorProcessing( ColorProcessing cp );
 
+    std::vector<AVT::VmbAPI::FeaturePtr> getFeatures();
+    AVT::VmbAPI::FeaturePtr getFeatureByName( const char *name );
+    AVT::VmbAPI::FeaturePtr getFeatureByName( const std::string &name );
+
     void startContinuousImageAcquisition();
     void stopContinuousImageAcquisition();
 
+
     cinder::Surface8uRef getCurrentFrame();
     bool checkNewFrame();
+
+    std::string getID();
+    std::string getName();
+    std::string getModel();
+
+    // expose raw camera for low level requests that are not exposed.
+    AVT::VmbAPI::CameraPtr getCamera() { return mCamera; }
 
   private:
 

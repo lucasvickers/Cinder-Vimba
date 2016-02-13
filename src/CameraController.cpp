@@ -38,7 +38,7 @@ CameraController::CameraController()
     mFrameInfo( FRAME_INFO_AUTO ),
     mNewFrame( false ),
     mFrameObserver( nullptr )
-{ 
+{
 
 }
 
@@ -63,7 +63,53 @@ void CameraController::setColorProcessing( ColorProcessing cp )
     }
 }
 
-cinder::Surface8uRef CameraController::getCurrentFrame()
+std::vector<AVT::VmbAPI::FeaturePtr> CameraController::getFeatures()
+{
+    AVT::VmbAPI::FeaturePtrVector ret;
+    mCamera->GetFeatures( ret );
+
+    return ret;
+}
+
+AVT::VmbAPI::FeaturePtr CameraController::getFeatureByName( const char *name )
+{
+    FeaturePtr feature;
+    VmbErrorType err = mCamera->GetFeatureByName( name, feature );
+    if( VmbErrorSuccess != err ) {
+        throw CameraControllerException( __FUNCTION__, ErrorCodeToMessage( err ), err );
+    }
+
+    return feature;
+}
+
+AVT::VmbAPI::FeaturePtr CameraController::getFeatureByName( const std::string &name )
+{
+    return getFeatureByName( name.c_str() );
+}
+
+std::string CameraController::CameraController::getID()
+{
+    std::string ret;
+    mCamera->GetID( ret );
+    return ret;
+}
+
+std::string CameraController::CameraController::getName()
+{
+    std::string ret;
+    mCamera->GetName( ret );
+    return ret;
+}
+
+std::string CameraController::CameraController::getModel()
+{
+    std::string ret;
+    mCamera->GetModel( ret );
+    return ret;
+}
+
+
+    cinder::Surface8uRef CameraController::getCurrentFrame()
 {
     // lock isn't really needed
     std::lock_guard<std::mutex> lock( mFrameMutex );
