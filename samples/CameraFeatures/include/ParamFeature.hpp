@@ -82,7 +82,7 @@ class ParamFeature {
             switch( type ) {
                 case VmbFeatureDataInt:
                     std::string unit = GetUnit( feature );
-                    
+
                     // add int
                     // need min, max, increment
                     // check that 64bit is not needed (get Unit)
