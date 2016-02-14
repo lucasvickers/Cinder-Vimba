@@ -24,6 +24,7 @@
 #pragma once
 
 #include "VimbaCPP/Include/VimbaCPP.h"
+
 #include "civimba/BaseException.h"
 #include "civimba/ErrorCodeToMessage.h"
 
@@ -134,6 +135,61 @@ public:
     static VmbFeatureDataType getDataType( const AVT::VmbAPI::FeaturePtr& featurePtr )
     {
         return wrappedGetter<VmbFeatureDataType>( std::bind(&AVT::VmbAPI::Feature::GetDataType, featurePtr.get(), std::placeholders::_1));
+    }
+
+    static std::string getDataTypeString( const AVT::VmbAPI::FeaturePtr& featurePtr )
+    {
+        auto type = wrappedGetter<VmbFeatureDataType>( std::bind(&AVT::VmbAPI::Feature::GetDataType, featurePtr.get(), std::placeholders::_1));
+        return getDataTypeString( type );
+    }
+
+
+    static std::string getDataTypeString( const VmbFeatureDataType& type )
+    {
+        switch( type ) {
+        case VmbFeatureDataInt:
+            return "int";
+            break;
+        case VmbFeatureDataFloat:
+            return "float";
+            break;
+        case VmbFeatureDataEnum:
+            return "enum";
+            break;
+        case VmbFeatureDataString:
+            return "string";
+            break;
+        case VmbFeatureDataBool:
+            return "bool";
+            break;
+        case VmbFeatureDataCommand:
+            return "command";
+            break;
+        case VmbFeatureDataRaw:
+            return "raw";
+            break;
+        case VmbFeatureDataNone:
+            return "none";
+            break;
+        case VmbFeatureDataUnknown:
+            return "unknown";
+            break;
+        default:
+            return "undefined";
+            break;
+        }
+    }
+
+    static std::vector<AVT::VmbAPI::EnumEntry> getEnumEntries()
+    {
+        std::vector<AVT::VmbAPI::EnumEntry> entries;
+        return entries;
+    }
+
+    static AVT::VmbAPI::EnumEntry getEnumValue()
+    {
+        AVT::VmbAPI::EnumEntry entry;
+        return entry;
     }
 
     static uint32_t getPollingTime( const AVT::VmbAPI::FeaturePtr& featurePtr )

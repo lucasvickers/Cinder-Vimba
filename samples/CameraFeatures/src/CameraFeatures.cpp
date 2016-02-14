@@ -52,14 +52,14 @@ class CameraFeatures : public App {
     void cleanup() override;
 
   private:
-    civimba::ApiController          mController;
+    civimba::ApiController                  mController;
 
-    civimba::CameraControllerRef    mCamera;
-    gl::Texture2dRef                mTexture;
+    civimba::CameraControllerRef            mCamera;
+    gl::Texture2dRef                        mTexture;
 
-    params::InterfaceGlRef	        mParams;
+    params::InterfaceGlRef	                mParams;
 
-    AVT::VmbAPI::FeaturePtrVector   mCameraFeatures;
+    std::vector<AVT::VmbAPI::FeaturePtr>    mCameraFeatures;
 
 };
 
@@ -104,17 +104,16 @@ void CameraFeatures::setup()
     std::vector<std::string> neededFeatures = {
             "AcquisitionFrameRateAbs",
             "ExposureTimeAbs",
+            "ExposureAuto",
             "Gain",
+            "GainAuto",
             "PixelFormat"
+            // TODO add white balance
     };
 
     for( auto name : neededFeatures ) {
         AVT::VmbAPI::FeaturePtr feature = mCamera->getFeatureByName( name );
-        civimba::FeatureAccessor::getValue<VmbInt64_t>( feature );
-    }
-    mCameraFeatures = mCamera->getFeatures();
-    for( auto feature : mCameraFeatures ) {
-        //mParams->addText( feature-> );
+        console() << "Feature " << name << " is of type " << civimba::FeatureAccessor::getDataTypeString( feature ) << std::endl;
     }
 }
 
