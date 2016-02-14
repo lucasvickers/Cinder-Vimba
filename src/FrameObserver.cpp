@@ -246,7 +246,7 @@ void FrameObserver::FrameReceived( const FramePtr pFrame )
                 break;
             case COLOR_PROCESSING_OFF:
                 newFrame = std::shared_ptr<cinder::Surface8u>( new cinder::Surface8u( frameWidth, frameHeight, false, cinder::SurfaceChannelOrder::RGB ) );
-                Result = TransformImage( pFrame, newFrame, "RGB24" );
+                Result = TransformImage::transform( pFrame, newFrame, "RGB24" );
                 break;
             case COLOR_PROCESSING_MATRIX:
                 {
@@ -255,7 +255,7 @@ void FrameObserver::FrameReceived( const FramePtr pFrame )
                                                     0.6f, 0.3f, 0.1f, 
                                                     0.6f, 0.3f, 0.1f};
                     newFrame = std::shared_ptr<cinder::Surface8u>( new cinder::Surface8u( frameWidth, frameHeight, false, cinder::SurfaceChannelOrder::BGR ) );
-                    Result = TransformImage( pFrame, newFrame,"BGR24", Matrix );
+                    Result = TransformImage::transform( pFrame, newFrame,"BGR24", Matrix );
                 }
                 break;
 

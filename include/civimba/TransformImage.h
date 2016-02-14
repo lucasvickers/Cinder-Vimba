@@ -33,13 +33,16 @@
 
 namespace civimba {
 
-VmbErrorType TransformImage( const AVT::VmbAPI::FramePtr &SourceFrame, 
-                             cinder::Surface8uRef &DestinationSurface,
-                             const std::string &DestinationFormat );
+class TransformImage {
+ public:
 
-VmbErrorType TransformImage( const AVT::VmbAPI::FramePtr &SourceFrame, 
-                             cinder::Surface8uRef &DestinationSurface,
-                             const std::string &DestinationFormat, 
-                             const VmbFloat_t *Matrix );
+    static VmbErrorType transform(const AVT::VmbAPI::FramePtr &SourceFrame,
+                                  cinder::Surface8uRef &DestinationSurface,
+                                  const std::string &DestinationFormat);
 
+    static VmbErrorType transform(const AVT::VmbAPI::FramePtr &SourceFrame,
+                                  cinder::Surface8uRef &DestinationSurface,
+                                  const std::string &DestinationFormat,
+                                  const VmbFloat_t *Matrix);
+};
 } // namespace civimba

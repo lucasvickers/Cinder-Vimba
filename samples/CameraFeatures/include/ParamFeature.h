@@ -72,7 +72,9 @@ class ParamFeature {
                 throw ParamFeatureException( __FUNCTION__, AVT::VmbAPI::ErrorCodeToMessage( err ), err );
             }
 
-            std::string name = getName( feature );
+            std::string name;
+
+            //std::string name = getName( feature );
             err = feature->GetDataType( type );
             if( VmbErrorSuccess != err ) {
                 throw ParamFeatureException( __FUNCTION__, AVT::VmbAPI::ErrorCodeToMessage( err ), err );
@@ -81,7 +83,7 @@ class ParamFeature {
 
             switch( type ) {
                 case VmbFeatureDataInt:
-                    std::string unit = GetUnit( feature );
+                    //std::string unit = GetUnit( feature );
 
                     // add int
                     // need min, max, increment
@@ -111,15 +113,20 @@ class ParamFeature {
                     // nothing to do
                     CI_LOG_W( "Feature " << name << " has no associated data." );
                     break;
-                case VmbFeatureDataUnknown:
-                    stringstream ss;
+                case VmbFeatureDataUnknown: {
+                    std::stringstream ss;
                     ss << "Feature " << name << " has unknown data type.";
-                    CI_LOG_E( ss.str() );
-                    throw ParamFeatureException( __FUNCTION__, ss.str(), err );
+                    CI_LOG_E(ss.str());
+                    throw ParamFeatureException(__FUNCTION__, ss.str(), err);
                     break;
-                default:
-                    throw ParamFeatureException( __FUNCTION__, ss.str(), err );
+                }
+                default: {
+                    std::stringstream ss;
+                    ss << "Feature " << name << " has unhandled data type.";
+                    CI_LOG_E(ss.str());
+                    throw ParamFeatureException(__FUNCTION__, ss.str(), err);
                     break;
+                }
             }
         }
     }

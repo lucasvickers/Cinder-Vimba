@@ -30,3 +30,4 @@
 #include "civimba/FrameObserver.h"
 #include "civimba/TransformImage.h"
 #include "civimba/Types.h"
+#include "civimba/FeatureAccessor.h"

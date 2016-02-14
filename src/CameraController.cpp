@@ -144,7 +144,7 @@ void CameraController::startContinuousImageAcquisition()
     mFrameObserver = new FrameObserver( mCamera, std::bind( &CameraController::frameObservedCallback, this, _1 ), mFrameInfo, mColorProcessing );
     
     // Start streaming.  FrameObserver* gets managed elsewhere
-    VmbErrorType res = mCamera->StartContinuousImageAcquisition( NUM_FRAMES, IFrameObserverPtr( mFrameObserver ));
+    VmbErrorType res = mCamera->StartContinuousImageAcquisition( mNumberFrames, IFrameObserverPtr( mFrameObserver ));
 
     if( res != VmbErrorSuccess ) {
         throw CameraControllerException( __FUNCTION__, ErrorCodeToMessage( res ), VmbErrorOther );      

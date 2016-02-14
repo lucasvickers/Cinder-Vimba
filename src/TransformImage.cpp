@@ -28,9 +28,9 @@
 
 namespace civimba {
 
-VmbErrorType TransformImage( const AVT::VmbAPI::FramePtr &SourceFrame, 
-                             cinder::Surface8uRef &DestinationSurface,
-                             const std::string &DestinationFormat )
+VmbErrorType TransformImage::transform( const AVT::VmbAPI::FramePtr &SourceFrame,
+                                        cinder::Surface8uRef &DestinationSurface,
+                                        const std::string &DestinationFormat )
 {
     if( SP_ISNULL( SourceFrame) )
     {
@@ -88,10 +88,10 @@ VmbErrorType TransformImage( const AVT::VmbAPI::FramePtr &SourceFrame,
     return Result;
 }
 
-VmbErrorType TransformImage( const AVT::VmbAPI::FramePtr &SourceFrame, 
-                             cinder::Surface8uRef &DestinationSurface,
-                             const std::string &DestinationFormat, 
-                             const VmbFloat_t *Matrix )
+VmbErrorType TransformImage::transform( const AVT::VmbAPI::FramePtr &SourceFrame,
+                                        cinder::Surface8uRef &DestinationSurface,
+                                        const std::string &DestinationFormat,
+                                        const VmbFloat_t *Matrix )
 {
     if( SP_ISNULL( SourceFrame ))
     {
