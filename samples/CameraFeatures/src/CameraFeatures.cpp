@@ -123,9 +123,13 @@ void CameraFeatures::setup()
     */
 
     // set up our params
-    mFrameRateAbs =     createContainer<FeatureDouble>( mCamera->getFeatureByName( "AcquisitionFrameRateAbs" ) );
-    mExposureTimeAbs =  createContainer<FeatureDouble>( mCamera->getFeatureByName( "ExposureTimeAbs" ) );
-    mGainAmount =       createContainer<FeatureDouble>( mCamera->getFeatureByName( "Gain" ) );
+    try {
+        mFrameRateAbs = createContainer<FeatureDouble>(mCamera->getFeatureByName("AcquisitionFrameRateAbs"));
+        mExposureTimeAbs = createContainer<FeatureDouble>(mCamera->getFeatureByName("ExposureTimeAbs"));
+        mGainAmount = createContainer<FeatureDouble>(mCamera->getFeatureByName("Gain"));
+    } catch ( civimba::BaseException& e ) {
+        CI_LOG_E( "Exception while setting up containers: " << e.Message() );
+    }
 }
 
 void CameraFeatures::cleanup()
