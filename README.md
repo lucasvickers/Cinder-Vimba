@@ -15,6 +15,9 @@ This is supported and tested.  To install:
 ###Windows
 * Not yet tested, should work once libs are figured out.
 
+##Tested
+* Single / Simultaneous GigE Mako Cameras
+
 ##Limitations
 * Cinder-Vimba is currently hard coded to return either a RGB24 or BGR24 Surface.  Support for other formats not yet implemented.
 * Vimba SDK runs on its own thread, and it does not seem possible to run multiple instances of the SDK on multiple threads inside the same application (feedback pending regarding this.)
