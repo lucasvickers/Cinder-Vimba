@@ -32,6 +32,7 @@ namespace civimba {
 namespace featurecontainer {
 
 typedef std::shared_ptr<class FeatureDouble> FeatureDoubleRef;
+typedef std::shared_ptr<class FeatureEnum> FeatureEnumRef;
 
 template<typename FeatureT, typename... Args>
 std::shared_ptr<FeatureT> createContainer(Args &&... args) {
@@ -86,6 +87,8 @@ class FeatureEnum : public FeatureContainer {
 
     std::vector<AVT::VmbAPI::EnumEntry> mEntries;
     int mCurrent;
+
+    void update() override;
 };
 
 class FeatureDouble : public FeatureContainer {

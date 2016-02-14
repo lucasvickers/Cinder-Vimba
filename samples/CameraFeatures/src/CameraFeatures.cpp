@@ -62,7 +62,11 @@ class CameraFeatures : public App {
 
     FeatureDoubleRef        mFrameRateAbs;
     FeatureDoubleRef        mExposureTimeAbs;
+
     FeatureDoubleRef        mGainAmount;
+    FeatureEnumRef          mGainAuto;
+
+    FeatureEnumRef          mPixelFormat;
 
     params::InterfaceGlRef	mParams;
 };
@@ -127,6 +131,9 @@ void CameraFeatures::setup()
         mFrameRateAbs = createContainer<FeatureDouble>(mCamera->getFeatureByName("AcquisitionFrameRateAbs"));
         mExposureTimeAbs = createContainer<FeatureDouble>(mCamera->getFeatureByName("ExposureTimeAbs"));
         mGainAmount = createContainer<FeatureDouble>(mCamera->getFeatureByName("Gain"));
+
+        mGainAuto = createContainer<FeatureEnum>(mCamera->getFeatureByName("GainAuto"));
+        mPixelFormat = createContainer<FeatureEnum>(mCamera->getFeatureByName("PixelFormat"));
     } catch ( civimba::BaseException& e ) {
         CI_LOG_E( "Exception while setting up containers: " << e.Message() );
     }

@@ -36,6 +36,7 @@ using namespace AVT::VmbAPI;
 // MARK: - FeatureContainer
 // ----------------------------------------------------------------------------------------------------
 FeatureContainer::FeatureContainer( const AVT::VmbAPI::FeaturePtr &feature )
+: mFeature( feature ), mPollingTime ( 0 )
 {
     // TODO possibly set up the update routine?
 }
@@ -61,17 +62,24 @@ FeatureEnum::FeatureEnum( const AVT::VmbAPI::FeaturePtr &feature )
 
     mEntries = FeatureAccessor::getEnumEntries( mFeature );
     mCurrent = FeatureAccessor::getValue<long long>( mFeature );
+    std::cout << "Feature " << FeatureAccessor::getName( mFeature ) << " has enum value of " << mCurrent << std::endl;
+    std::cout << "Feature " << FeatureAccessor::getName( mFeature ) << " has enum value of " << FeatureAccessor::getValue<std::string>( mFeature ) << std::endl;
 
     //mIncrement = FeatureAccessor::hasIncrement( mFeature ) ? FeatureAccessor::getIncrement<double>( mFeature ) : 0;
 
     mPollingTime = FeatureAccessor::getPollingTime( mFeature );
-    std::cout << "Feature " << FeatureAccessor::getName( mFeature ) << " of type double has polling of " << mPollingTime << std::endl;
+    std::cout << "Feature " << FeatureAccessor::getName( mFeature ) << " of type enum has polling of " << mPollingTime << std::endl;
 
     // set up callback
 
 }
 
 FeatureEnum::~FeatureEnum()
+{
+
+}
+
+void FeatureEnum::update()
 {
 
 }
