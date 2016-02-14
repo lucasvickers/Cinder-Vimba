@@ -79,7 +79,7 @@ public:
 
     double getMax() { return mMax; }
 
-    double getIncrement() { return mIncrement; }
+    //double getIncrement() { return mIncrement; }
 
     // set value, return what it's set to
     double setValue( double val );
@@ -89,7 +89,8 @@ protected:
     double mValue;
     double mMin;
     double mMax;
-    double mIncrement;
+    // TODO fix this
+    //double mIncrement;
 
     AVT::VmbAPI::FeaturePtr mFeature;
 

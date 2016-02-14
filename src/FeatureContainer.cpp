@@ -48,7 +48,7 @@ FeatureDouble::FeatureDouble( const AVT::VmbAPI::FeaturePtr& feature )
     mMin = FeatureAccessor::getMin<double>( mFeature );
     mMax = FeatureAccessor::getMax<double>( mFeature );
 
-    mIncrement = FeatureAccessor::hasIncrement( mFeature ) ? FeatureAccessor::getIncrement<double>( mFeature ) : 0;
+    //mIncrement = FeatureAccessor::hasIncrement( mFeature ) ? FeatureAccessor::getIncrement<double>( mFeature ) : 0;
 
     mPollingTime = FeatureAccessor::getPollingTime( mFeature );
 
