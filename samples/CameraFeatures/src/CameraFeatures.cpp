@@ -35,6 +35,9 @@ using namespace ci;
 using namespace ci::app;
 using namespace ci::log;
 
+using namespace civimba;
+using namespace civimba::featurecontainer;
+
 // We'll create a new Cinder Application by deriving from the App class.
 class CameraFeatures : public App {
   public:
@@ -52,15 +55,16 @@ class CameraFeatures : public App {
     void cleanup() override;
 
   private:
-    civimba::ApiController                  mController;
+    ApiController           mController;
 
-    civimba::CameraControllerRef            mCamera;
-    gl::Texture2dRef                        mTexture;
+    CameraControllerRef     mCamera;
+    gl::Texture2dRef        mTexture;
 
-    params::InterfaceGlRef	                mParams;
+    FeatureDoubleRef        mFrameRateAbs;
+    FeatureDoubleRef        mExposureTimeAbs;
+    FeatureDoubleRef        mGainAmount;
 
-    std::vector<AVT::VmbAPI::FeaturePtr>    mCameraFeatures;
-
+    params::InterfaceGlRef	mParams;
 };
 
 void prepareSettings( CameraFeatures::Settings* settings )
@@ -100,21 +104,28 @@ void CameraFeatures::setup()
     mParams->addText( "Camera Name " + mCamera->getName() );
     mParams->addSeparator();
 
-    // Use the vimba viewer to figure these out
+    // useful code for identifying the feature types
+    /*
     std::vector<std::string> neededFeatures = {
-            "AcquisitionFrameRateAbs",
-            "ExposureTimeAbs",
-            "ExposureAuto",
-            "Gain",
-            "GainAuto",
-            "PixelFormat"
+            "AcquisitionFrameRateAbs",  // float64 (double)
+            "ExposureTimeAbs",          // float64 (double)
+            "ExposureAuto",             // enum
+            "Gain",                     // float64 (double)
+            "GainAuto",                 // enum
+            "PixelFormat"               // enum
             // TODO add white balance
     };
 
     for( auto name : neededFeatures ) {
         AVT::VmbAPI::FeaturePtr feature = mCamera->getFeatureByName( name );
-        console() << "Feature " << name << " is of type " << civimba::FeatureAccessor::getDataTypeString( feature ) << std::endl;
+        console() << "Feature " << name << " is of type " << FeatureAccessor::getDataTypeString( feature ) << std::endl;
     }
+    */
+
+    // set up our params
+    mFrameRateAbs =     createContainer<FeatureDouble>( mCamera->getFeatureByName( "AcquisitionFrameRateAbs" ) );
+    mExposureTimeAbs =  createContainer<FeatureDouble>( mCamera->getFeatureByName( "ExposureTimeAbs" ) );
+    mGainAmount =       createContainer<FeatureDouble>( mCamera->getFeatureByName( "Gain" ) );
 }
 
 void CameraFeatures::cleanup()

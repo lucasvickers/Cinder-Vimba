@@ -21,14 +21,49 @@
  POSSIBILITY OF SUCH DAMAGE.
 */
 
-#pragma once
-
-#include "civimba/ApiController.h"
-#include "civimba/BaseException.h"
-#include "civimba/CameraController.h"
-#include "civimba/ErrorCodeToMessage.h"
-#include "civimba/FrameObserver.h"
-#include "civimba/TransformImage.h"
-#include "civimba/Types.h"
-#include "civimba/FeatureAccessor.h"
 #include "civimba/FeatureContainer.h"
+#include "civimba/FeatureAccessor.h"
+
+#include <sstream>
+
+namespace civimba {
+namespace featurecontainer {
+
+using namespace AVT::VmbAPI;
+
+FeatureDouble::FeatureDouble( const AVT::VmbAPI::FeaturePtr& feature )
+: mFeature( feature )
+{
+    // ensure compatible types
+    if( VmbFeatureDataFloat != FeatureAccessor::getDataType( mFeature ) ) {
+        std::stringstream ss;
+        ss << "Feature " << FeatureAccessor::getName( mFeature ) << " is of type "
+           << FeatureAccessor::getDataTypeString( mFeature ) << ", but expected type FLOAT64 (i.e. double)";
+        throw CameraControllerException( __FUNCTION__, ss.str(), VmbErrorWrongType );
+    }
+
+    // TODO wtf there's no float accessor, whats this shit?
+    mValue = FeatureAccessor::getValue<double>( mFeature );
+
+    mMin = FeatureAccessor::getMin<double>( mFeature );
+    mMax = FeatureAccessor::getMax<double>( mFeature );
+
+    mIncrement = FeatureAccessor::hasIncrement( mFeature ) ? FeatureAccessor::getIncrement<double>( mFeature ) : 0;
+
+    mPollingTime = FeatureAccessor::getPollingTime( mFeature );
+
+    // set up callback
+}
+
+FeatureDouble::~FeatureDouble()
+{
+
+}
+
+void FeatureDouble::update()
+{
+
+}
+
+} // namespace featurecontainer
+} // namespace civimba

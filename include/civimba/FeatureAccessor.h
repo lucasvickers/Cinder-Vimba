@@ -148,34 +148,35 @@ public:
     {
         switch( type ) {
         case VmbFeatureDataInt:
-            return "int";
+            return "INT";
             break;
         case VmbFeatureDataFloat:
-            return "float";
+            // 64 bit floating point feature, ie a DOUBLE
+            return "FLOAT64 (double)";
             break;
         case VmbFeatureDataEnum:
-            return "enum";
+            return "ENUM";
             break;
         case VmbFeatureDataString:
-            return "string";
+            return "STRING";
             break;
         case VmbFeatureDataBool:
-            return "bool";
+            return "BOOL";
             break;
         case VmbFeatureDataCommand:
-            return "command";
+            return "COMMAND";
             break;
         case VmbFeatureDataRaw:
-            return "raw";
+            return "RAW";
             break;
         case VmbFeatureDataNone:
-            return "none";
+            return "NONE";
             break;
         case VmbFeatureDataUnknown:
-            return "unknown";
+            return "UNKNOWN";
             break;
         default:
-            return "undefined";
+            return "UNDEFINED";
             break;
         }
     }

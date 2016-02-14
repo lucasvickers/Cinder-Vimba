@@ -42,6 +42,7 @@ set( BLOCK_SRC_FILES
     ${BLOCK_SRC_DIR}/CameraController.cpp
     ${BLOCK_SRC_DIR}/FrameObserver.cpp
     ${BLOCK_SRC_DIR}/TransformImage.cpp
+    ${BLOCK_SRC_DIR}/FeatureContainer.cpp
 )
 
 add_executable( "${EXE_NAME}" ${BLOCK_SRC_FILES} ${SRC_FILES} )
