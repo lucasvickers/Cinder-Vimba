@@ -61,12 +61,13 @@ class CameraFeatures : public App {
     gl::Texture2dRef        mTexture;
 
     FeatureDoubleRef        mFrameRateAbs;
+
     FeatureDoubleRef        mExposureTimeAbs;
+    FeatureEnumRef          mExposureAuto;
 
     FeatureDoubleRef        mGainAmount;
     FeatureEnumRef          mGainAuto;
 
-    FeatureEnumRef          mPixelFormat;
 
     params::InterfaceGlRef	mParams;
 };
@@ -99,6 +100,7 @@ void CameraFeatures::setup()
         mCamera->startContinuousImageAcquisition();
     } else {
         CI_LOG_E( "No cameras detected." );
+        return;
     }
 
     mParams = params::InterfaceGl::create( getWindow(), "Camera Parameters", toPixels( ivec2( 200, 300 ) ) );
@@ -115,7 +117,6 @@ void CameraFeatures::setup()
             "ExposureTimeAbs",          // float64 (double)
             "ExposureAuto",             // enum
             "Gain",                     // float64 (double)
-            "GainAuto",                 // enum
             "PixelFormat"               // enum
             // TODO add white balance
     };
@@ -133,7 +134,27 @@ void CameraFeatures::setup()
         mGainAmount = createContainer<FeatureDouble>(mCamera->getFeatureByName("Gain"));
 
         mGainAuto = createContainer<FeatureEnum>(mCamera->getFeatureByName("GainAuto"));
-        mPixelFormat = createContainer<FeatureEnum>(mCamera->getFeatureByName("PixelFormat"));
+
+        mParams->addParam<double>( "FrameRateAbs",
+                                   std::bind( &FeatureDouble::setValue, mFrameRateAbs.get(), std::placeholders::_1 ),
+                                   std::bind( &FeatureDouble::getValue, mFrameRateAbs.get() ) );
+
+        mParams->addParam<double>( "ExposureTimeAbs",
+                                   std::bind( &FeatureDouble::setValue, mExposureTimeAbs.get(), std::placeholders::_1 ),
+                                   std::bind( &FeatureDouble::getValue, mExposureTimeAbs.get() ) );
+        mParams->addParam( "Exposure Config", mExposureAuto->getEnumsStr(),
+                           std::bind( &FeatureEnum::setCurrentEnumIndex, mExposureAuto.get(), std::placeholders::_1 ),
+                           std::bind( &FeatureEnum::getCurrentEnumIndex, mExposureAuto.get() ) );
+
+        mParams->addParam<double>( "GainAmount",
+                                   std::bind( &FeatureDouble::setValue, mFrameRateAbs.get(), std::placeholders::_1 ),
+                                   std::bind( &FeatureDouble::getValue, mFrameRateAbs.get() ) );
+        mParams->addParam( "Gain Config", mGainAuto->getEnumsStr(),
+                           std::bind( &FeatureEnum::setCurrentEnumIndex, mGainAuto.get(), std::placeholders::_1 ),
+                           std::bind( &FeatureEnum::getCurrentEnumIndex, mGainAuto.get() ) );
+
+        // TODO add white balance
+
     } catch ( civimba::BaseException& e ) {
         CI_LOG_E( "Exception while setting up containers: " << e.Message() );
     }

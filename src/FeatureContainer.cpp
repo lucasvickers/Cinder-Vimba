@@ -23,9 +23,11 @@
 
 #include "civimba/FeatureContainer.h"
 #include "civimba/FeatureAccessor.h"
+#include "cinder/app/App.h"
 
 #include <sstream>
 #include <iostream>
+#include <chrono>
 
 namespace civimba {
 namespace featurecontainer {
@@ -38,19 +40,38 @@ using namespace AVT::VmbAPI;
 FeatureContainer::FeatureContainer( const AVT::VmbAPI::FeaturePtr &feature )
 : mFeature( feature ), mPollingTime ( 0 )
 {
-    // TODO possibly set up the update routine?
 }
 
 FeatureContainer::~FeatureContainer()
 {
-    // TODO unregister update
+    mUpdateConnection.disconnect();
+}
+
+void FeatureContainer::setupUpdate()
+{
+    using namespace std::chrono;
+    milliseconds ms = duration_cast< milliseconds > ( system_clock::now().time_since_epoch() );
+    mNextPoll = ms + milliseconds( mPollingTime );
+
+    mUpdateConnection = ci::app::App::get()->getSignalUpdate().connect( std::bind( &FeatureContainer::update, this ) );
+}
+
+void FeatureContainer::update()
+{
+    using namespace std::chrono;
+    milliseconds ms = duration_cast< milliseconds > ( system_clock::now().time_since_epoch() );
+
+    if( ms < mNextPoll ) {
+        mNextPoll = ms + milliseconds(mPollingTime);
+        updateImpl();
+    }
 }
 
 // ----------------------------------------------------------------------------------------------------
 // MARK: - FeatureEnum
 // ----------------------------------------------------------------------------------------------------
 FeatureEnum::FeatureEnum( const AVT::VmbAPI::FeaturePtr &feature )
-: FeatureContainer( feature ), mCurrent( 0 )
+: FeatureContainer( feature ), mCurrentIndex( 0 )
 {
     // ensure compatible types
     if( VmbFeatureDataEnum != FeatureAccessor::getDataType( mFeature ) ) {
@@ -61,16 +82,16 @@ FeatureEnum::FeatureEnum( const AVT::VmbAPI::FeaturePtr &feature )
     }
 
     mEntries = FeatureAccessor::getEnumEntries( mFeature );
-    mCurrent = FeatureAccessor::getValue<long long>( mFeature );
-    std::cout << "Feature " << FeatureAccessor::getName( mFeature ) << " has enum value of " << mCurrent << std::endl;
-    std::cout << "Feature " << FeatureAccessor::getName( mFeature ) << " has enum value of " << FeatureAccessor::getValue<std::string>( mFeature ) << std::endl;
+    mCurrentName = FeatureAccessor::getValue<std::string>( mFeature );
 
+    // pull the current enum index using update's logic
+    updateImpl();
     //mIncrement = FeatureAccessor::hasIncrement( mFeature ) ? FeatureAccessor::getIncrement<double>( mFeature ) : 0;
 
     mPollingTime = FeatureAccessor::getPollingTime( mFeature );
-    std::cout << "Feature " << FeatureAccessor::getName( mFeature ) << " of type enum has polling of " << mPollingTime << std::endl;
-
-    // set up callback
+    if( mPollingTime ) {
+        setupUpdate();
+    }
 
 }
 
@@ -79,20 +100,44 @@ FeatureEnum::~FeatureEnum()
 
 }
 
-void FeatureEnum::update()
+void FeatureEnum::updateImpl()
 {
+    mCurrentName = FeatureAccessor::getValue<std::string>( mFeature );
 
+    // there's only like 2-5 options, so no need to optimize this
+    int index = 0;
+    for( auto &option : mEntries ) {
+        std::string name;
+        option.GetName( name );
+        if( name == mCurrentName ) {
+            mCurrentIndex = index;
+        }
+        ++index;
+    }
 }
 
 AVT::VmbAPI::EnumEntry FeatureEnum::getCurrentEnum()
 {
-    return mEntries[mCurrent];
+    return mEntries[mCurrentIndex];
 }
 
-void FeatureEnum::setCurrentEnum( int index )
+std::vector<std::string> FeatureEnum::getEnumsStr()
+{
+    std::vector<std::string> ret;
+    auto entries = getEnums();
+    for( auto& entry : entries ) {
+        std::string name;
+        entry.GetName( name );
+        ret.push_back( name );
+    }
+
+    return ret;
+}
+
+void FeatureEnum::setCurrentEnumIndex( int index )
 {
     if( index < mEntries.size() ) {
-        mCurrent = index;
+        mCurrentIndex = index;
     } else {
         throw FeatureContainerException( __FUNCTION__, "Attempting to set enum to out of bounds index", VmbErrorWrongType );
     }
@@ -113,17 +158,14 @@ FeatureDouble::FeatureDouble( const AVT::VmbAPI::FeaturePtr& feature )
         throw FeatureContainerException( __FUNCTION__, ss.str(), VmbErrorWrongType );
     }
 
-    mValue = FeatureAccessor::getValue<double>( mFeature );
-
-    mMin = FeatureAccessor::getMin<double>( mFeature );
-    mMax = FeatureAccessor::getMax<double>( mFeature );
-
+    // call updateImpl to grab values
+    updateImpl();
     //mIncrement = FeatureAccessor::hasIncrement( mFeature ) ? FeatureAccessor::getIncrement<double>( mFeature ) : 0;
 
     mPollingTime = FeatureAccessor::getPollingTime( mFeature );
-    std::cout << "Feature " << FeatureAccessor::getName( mFeature ) << " of type double has polling of " << mPollingTime << std::endl;
-
-    // set up callback
+    if( mPollingTime ) {
+        setupUpdate();
+    }
 }
 
 FeatureDouble::~FeatureDouble()
@@ -133,12 +175,18 @@ FeatureDouble::~FeatureDouble()
 
 double FeatureDouble::setValue( double val )
 {
+    double target = std::max( std::min( val, mMax ), mMin);
+    FeatureAccessor::setValue<double>( mFeature, target );
+    mValue = FeatureAccessor::getValue<double>( mFeature );
 
+    return mValue;
 }
 
-void FeatureDouble::update()
+void FeatureDouble::updateImpl()
 {
-    // TODO do this
+    mValue = FeatureAccessor::getValue<double>( mFeature );
+    mMin = FeatureAccessor::getMin<double>( mFeature );
+    mMax = FeatureAccessor::getMax<double>( mFeature );
 }
 
 } // namespace featurecontainer

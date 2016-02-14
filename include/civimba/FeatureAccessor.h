@@ -57,10 +57,17 @@ public:
     }
 
     template<typename T>
-    void setValue(const AVT::VmbAPI::FeaturePtr &featurePtr, const T &value)
+    static void setValue(const AVT::VmbAPI::FeaturePtr &featurePtr, const T &value)
     {
         return wrappedSetter<T>(std::bind(
                 static_cast<VmbErrorType(AVT::VmbAPI::Feature::*)(const T &)>( &AVT::VmbAPI::Feature::SetValue ), featurePtr.get(), value));
+    }
+
+    // for bool, the non referenced type
+    static void setBool(const AVT::VmbAPI::FeaturePtr &featurePtr, bool value)
+    {
+        return wrappedSetter<bool>(std::bind(
+                static_cast<VmbErrorType(AVT::VmbAPI::Feature::*)(bool)>( &AVT::VmbAPI::Feature::SetValue ), featurePtr.get(), value));
     }
 
     //! *** Min/Max
@@ -224,7 +231,7 @@ protected:
     }
 
     template <typename T>
-    static void wrappedSetter( std::function<VmbErrorType(const T&)> func )
+    static void wrappedSetter( std::function<VmbErrorType()> func )
     {
         VmbErrorType res = func();
         if( VmbErrorSuccess == res ) {

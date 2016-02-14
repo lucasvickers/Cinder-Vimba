@@ -27,6 +27,9 @@
 #include "civimba/FeatureAccessor.h"
 
 #include <memory>
+#include <chrono>
+
+#include "cinder/Signals.h"
 
 namespace civimba {
 namespace featurecontainer {
@@ -64,11 +67,17 @@ class FeatureContainer {
 protected:
 
     // TODO fix this
-    //double                mIncrement;
-    AVT::VmbAPI::FeaturePtr mFeature;
-    uint32_t                mPollingTime;
+    //double                    mIncrement;
+    AVT::VmbAPI::FeaturePtr     mFeature;
+    uint32_t                    mPollingTime;
+    cinder::signals::Connection mUpdateConnection;
 
-    virtual void update() = 0;
+    std::chrono::milliseconds   mNextPoll;
+
+    void setupUpdate();
+    void update();
+
+    virtual void updateImpl() = 0;
 
 };
 
@@ -79,16 +88,20 @@ class FeatureEnum : public FeatureContainer {
     ~FeatureEnum();
 
     std::vector<AVT::VmbAPI::EnumEntry> getEnums() { return mEntries; }
+    std::vector<std::string> getEnumsStr();
     AVT::VmbAPI::EnumEntry getCurrentEnum();
 
-    void setCurrentEnum( int index );
+    int getCurrentEnumIndex() { return mCurrentIndex; }
+
+    void setCurrentEnumIndex( int index );
 
   protected:
 
     std::vector<AVT::VmbAPI::EnumEntry> mEntries;
-    int mCurrent;
+    int mCurrentIndex;
+    std::string mCurrentName;
 
-    void update() override;
+    void updateImpl() override;
 };
 
 class FeatureDouble : public FeatureContainer {
@@ -112,7 +125,7 @@ class FeatureDouble : public FeatureContainer {
     double mMin;
     double mMax;
 
-    void update() override;
+    void updateImpl() override;
 };
 
 } // namespace featurecontainer
