@@ -31,13 +31,6 @@
 namespace civimba {
 namespace featurecontainer {
 
-/*
-// TODO perhaps derive from this?
-class FeatureContainer {
-
-};
-*/
-
 typedef std::shared_ptr<class FeatureDouble> FeatureDoubleRef;
 
 template<typename FeatureT, typename... Args>
@@ -45,33 +38,61 @@ std::shared_ptr<FeatureT> createContainer(Args &&... args) {
     return std::make_shared<FeatureT>(FeatureT(std::forward<Args>(args) ...));
 }
 
-class CameraControllerException : public BaseException {
+class FeatureContainerException : public BaseException {
 public:
-    CameraControllerException(const char *const &fun, const char *const &msg, VmbErrorType result = VmbErrorOther)
+    FeatureContainerException(const char *const &fun, const char *const &msg, VmbErrorType result = VmbErrorOther)
             : BaseException(fun, msg, result) { }
 
-    CameraControllerException(const char *const &fun, const std::string &msg, VmbErrorType result = VmbErrorOther)
+    FeatureContainerException(const char *const &fun, const std::string &msg, VmbErrorType result = VmbErrorOther)
             : BaseException(fun, msg, result) { }
 
-    ~CameraControllerException() throw() { }
+    ~FeatureContainerException() throw() { }
 };
 
-class FeatureEnum {
-public:
+class FeatureContainer {
+  public:
 
-protected:
-    std::vector<AVT::VmbAPI::EnumEntry> mEntries;
-    AVT::VmbAPI::EnumEntry mValue;
-};
-
-class FeatureDouble {
-public:
-
-    FeatureDouble(const AVT::VmbAPI::FeaturePtr &feature);
-
-    ~FeatureDouble();
+    FeatureContainer( const AVT::VmbAPI::FeaturePtr &feature );
+    virtual ~FeatureContainer();
 
     AVT::VmbAPI::FeaturePtr getFeature() { return mFeature; }
+
+    // TODO fix this
+    //double getIncrement() { return mIncrement; }
+
+protected:
+
+    // TODO fix this
+    //double                mIncrement;
+    AVT::VmbAPI::FeaturePtr mFeature;
+    uint32_t                mPollingTime;
+
+    virtual void update() = 0;
+
+};
+
+class FeatureEnum : public FeatureContainer {
+  public:
+
+    FeatureEnum( const AVT::VmbAPI::FeaturePtr &feature );
+    ~FeatureEnum();
+
+    std::vector<AVT::VmbAPI::EnumEntry> getEnums() { return mEntries; }
+    AVT::VmbAPI::EnumEntry getCurrentEnum();
+
+    void setCurrentEnum( int index );
+
+  protected:
+
+    std::vector<AVT::VmbAPI::EnumEntry> mEntries;
+    int mCurrent;
+};
+
+class FeatureDouble : public FeatureContainer {
+  public:
+
+    FeatureDouble( const AVT::VmbAPI::FeaturePtr &feature );
+    ~FeatureDouble();
 
     double getValue() { return mValue; }
 
@@ -79,24 +100,16 @@ public:
 
     double getMax() { return mMax; }
 
-    //double getIncrement() { return mIncrement; }
-
     // set value, return what it's set to
     double setValue( double val );
 
-protected:
+  protected:
 
     double mValue;
     double mMin;
     double mMax;
-    // TODO fix this
-    //double mIncrement;
 
-    AVT::VmbAPI::FeaturePtr mFeature;
-
-    uint32_t mPollingTime;
-
-    void update();
+    void update() override;
 };
 
 } // namespace featurecontainer

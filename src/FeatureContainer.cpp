@@ -25,24 +25,86 @@
 #include "civimba/FeatureAccessor.h"
 
 #include <sstream>
+#include <iostream>
 
 namespace civimba {
 namespace featurecontainer {
 
 using namespace AVT::VmbAPI;
 
+// ----------------------------------------------------------------------------------------------------
+// MARK: - FeatureContainer
+// ----------------------------------------------------------------------------------------------------
+FeatureContainer::FeatureContainer( const AVT::VmbAPI::FeaturePtr &feature )
+{
+    // TODO possibly set up the update routine?
+}
+
+FeatureContainer::~FeatureContainer()
+{
+    // TODO unregister update
+}
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - FeatureEnum
+// ----------------------------------------------------------------------------------------------------
+FeatureEnum::FeatureEnum( const AVT::VmbAPI::FeaturePtr &feature )
+: FeatureContainer( feature ), mCurrent( 0 )
+{
+    // ensure compatible types
+    if( VmbFeatureDataEnum != FeatureAccessor::getDataType( mFeature ) ) {
+        std::stringstream ss;
+        ss << "Feature " << FeatureAccessor::getName( mFeature ) << " is of type "
+        << FeatureAccessor::getDataTypeString( mFeature ) << ", but expected type ENUM";
+        throw FeatureContainerException( __FUNCTION__, ss.str(), VmbErrorWrongType );
+    }
+
+    mEntries = FeatureAccessor::getEnumEntries( mFeature );
+    mCurrent = FeatureAccessor::getValue<long long>( mFeature );
+
+    //mIncrement = FeatureAccessor::hasIncrement( mFeature ) ? FeatureAccessor::getIncrement<double>( mFeature ) : 0;
+
+    mPollingTime = FeatureAccessor::getPollingTime( mFeature );
+    std::cout << "Feature " << FeatureAccessor::getName( mFeature ) << " of type double has polling of " << mPollingTime << std::endl;
+
+    // set up callback
+
+}
+
+FeatureEnum::~FeatureEnum()
+{
+
+}
+
+AVT::VmbAPI::EnumEntry FeatureEnum::getCurrentEnum()
+{
+    return mEntries[mCurrent];
+}
+
+void FeatureEnum::setCurrentEnum( int index )
+{
+    if( index < mEntries.size() ) {
+        mCurrent = index;
+    } else {
+        throw FeatureContainerException( __FUNCTION__, "Attempting to set enum to out of bounds index", VmbErrorWrongType );
+    }
+}
+
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - FeatureDouble
+// ----------------------------------------------------------------------------------------------------
 FeatureDouble::FeatureDouble( const AVT::VmbAPI::FeaturePtr& feature )
-: mFeature( feature )
+: FeatureContainer( feature )
 {
     // ensure compatible types
     if( VmbFeatureDataFloat != FeatureAccessor::getDataType( mFeature ) ) {
         std::stringstream ss;
         ss << "Feature " << FeatureAccessor::getName( mFeature ) << " is of type "
            << FeatureAccessor::getDataTypeString( mFeature ) << ", but expected type FLOAT64 (i.e. double)";
-        throw CameraControllerException( __FUNCTION__, ss.str(), VmbErrorWrongType );
+        throw FeatureContainerException( __FUNCTION__, ss.str(), VmbErrorWrongType );
     }
 
-    // TODO wtf there's no float accessor, whats this shit?
     mValue = FeatureAccessor::getValue<double>( mFeature );
 
     mMin = FeatureAccessor::getMin<double>( mFeature );
@@ -51,18 +113,24 @@ FeatureDouble::FeatureDouble( const AVT::VmbAPI::FeaturePtr& feature )
     //mIncrement = FeatureAccessor::hasIncrement( mFeature ) ? FeatureAccessor::getIncrement<double>( mFeature ) : 0;
 
     mPollingTime = FeatureAccessor::getPollingTime( mFeature );
+    std::cout << "Feature " << FeatureAccessor::getName( mFeature ) << " of type double has polling of " << mPollingTime << std::endl;
 
     // set up callback
 }
 
 FeatureDouble::~FeatureDouble()
 {
+    // TODO remove callback?
+}
+
+double FeatureDouble::setValue( double val )
+{
 
 }
 
 void FeatureDouble::update()
 {
-
+    // TODO do this
 }
 
 } // namespace featurecontainer

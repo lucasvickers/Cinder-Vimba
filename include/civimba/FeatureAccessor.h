@@ -181,16 +181,10 @@ public:
         }
     }
 
-    static std::vector<AVT::VmbAPI::EnumEntry> getEnumEntries()
+    static std::vector<AVT::VmbAPI::EnumEntry> getEnumEntries( const AVT::VmbAPI::FeaturePtr& featurePtr )
     {
-        std::vector<AVT::VmbAPI::EnumEntry> entries;
-        return entries;
-    }
-
-    static AVT::VmbAPI::EnumEntry getEnumValue()
-    {
-        AVT::VmbAPI::EnumEntry entry;
-        return entry;
+        return wrappedGetter<AVT::VmbAPI::EnumEntryVector>(std::bind(
+                static_cast<VmbErrorType( AVT::VmbAPI::Feature::* )( AVT::VmbAPI::EnumEntryVector& )>( &AVT::VmbAPI::Feature::GetEntries ), featurePtr.get(), std::placeholders::_1));
     }
 
     static uint32_t getPollingTime( const AVT::VmbAPI::FeaturePtr& featurePtr )
