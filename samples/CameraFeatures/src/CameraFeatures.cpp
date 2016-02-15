@@ -131,8 +131,8 @@ void CameraFeatures::setup()
     try {
         mFrameRateAbs = createContainer<FeatureDouble>(mCamera->getFeatureByName("AcquisitionFrameRateAbs"));
         mExposureTimeAbs = createContainer<FeatureDouble>(mCamera->getFeatureByName("ExposureTimeAbs"));
+        mExposureAuto = createContainer<FeatureEnum>(mCamera->getFeatureByName("ExposureAuto"));
         mGainAmount = createContainer<FeatureDouble>(mCamera->getFeatureByName("Gain"));
-
         mGainAuto = createContainer<FeatureEnum>(mCamera->getFeatureByName("GainAuto"));
 
         mParams->addParam<double>( "FrameRateAbs",
