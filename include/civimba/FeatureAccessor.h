@@ -63,6 +63,13 @@ public:
                 static_cast<VmbErrorType(AVT::VmbAPI::Feature::*)(const T &)>( &AVT::VmbAPI::Feature::SetValue ), featurePtr.get(), value));
     }
 
+    // for std::string
+    static void setStr( const AVT::VmbAPI::FeaturePtr &featurePtr, const std::string &value )
+    {
+        return wrappedSetter<const char*>(std::bind(
+                static_cast<VmbErrorType(AVT::VmbAPI::Feature::*)(const char*)>( &AVT::VmbAPI::Feature::SetValue ), featurePtr.get(), value.c_str()) );
+    }
+
     // for bool, the non referenced type
     static void setBool(const AVT::VmbAPI::FeaturePtr &featurePtr, bool value)
     {

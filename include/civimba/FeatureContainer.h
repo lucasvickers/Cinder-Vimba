@@ -37,9 +37,10 @@ namespace featurecontainer {
 typedef std::shared_ptr<class FeatureDouble> FeatureDoubleRef;
 typedef std::shared_ptr<class FeatureEnum> FeatureEnumRef;
 
+
 template<typename FeatureT, typename... Args>
 std::shared_ptr<FeatureT> createContainer(Args &&... args) {
-    return std::make_shared<FeatureT>(FeatureT(std::forward<Args>(args) ...));
+    return std::shared_ptr<FeatureT>(new FeatureT(std::forward<Args>(args) ...));
 }
 
 class FeatureContainerException : public BaseException {
@@ -53,7 +54,8 @@ public:
     ~FeatureContainerException() throw() { }
 };
 
-class FeatureContainer {
+class FeatureContainer : private cinder::Noncopyable
+{
   public:
 
     FeatureContainer( const AVT::VmbAPI::FeaturePtr &feature );
@@ -81,7 +83,8 @@ protected:
 
 };
 
-class FeatureEnum : public FeatureContainer {
+class FeatureEnum : public FeatureContainer, public std::enable_shared_from_this<FeatureEnum>
+{
   public:
 
     FeatureEnum( const AVT::VmbAPI::FeaturePtr &feature );
@@ -104,7 +107,8 @@ class FeatureEnum : public FeatureContainer {
     void updateImpl() override;
 };
 
-class FeatureDouble : public FeatureContainer {
+class FeatureDouble : public FeatureContainer, public std::enable_shared_from_this<FeatureDouble>
+{
   public:
 
     FeatureDouble( const AVT::VmbAPI::FeaturePtr &feature );

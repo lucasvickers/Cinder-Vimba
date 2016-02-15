@@ -53,7 +53,7 @@ void FeatureContainer::setupUpdate()
     milliseconds ms = duration_cast< milliseconds > ( system_clock::now().time_since_epoch() );
     mNextPoll = ms + milliseconds( mPollingTime );
 
-    mUpdateConnection = ci::app::App::get()->getSignalUpdate().connect( std::bind( &FeatureContainer::update, this ) );
+    mUpdateConnection = ci::app::App::get()->getSignalUpdate().connect( [this]() { update(); } );
 }
 
 void FeatureContainer::update()
@@ -61,7 +61,7 @@ void FeatureContainer::update()
     using namespace std::chrono;
     milliseconds ms = duration_cast< milliseconds > ( system_clock::now().time_since_epoch() );
 
-    if( ms < mNextPoll ) {
+    if( ms > mNextPoll ) {
         mNextPoll = ms + milliseconds(mPollingTime);
         updateImpl();
     }
@@ -89,6 +89,7 @@ FeatureEnum::FeatureEnum( const AVT::VmbAPI::FeaturePtr &feature )
     //mIncrement = FeatureAccessor::hasIncrement( mFeature ) ? FeatureAccessor::getIncrement<double>( mFeature ) : 0;
 
     mPollingTime = FeatureAccessor::getPollingTime( mFeature );
+    //std::cout << "Feature " << FeatureAccessor::getName( mFeature ) << " has polling time of " << mPollingTime << std::endl;
     if( mPollingTime ) {
         setupUpdate();
     }
@@ -138,6 +139,9 @@ void FeatureEnum::setCurrentEnumIndex( int index )
 {
     if( index < mEntries.size() ) {
         mCurrentIndex = index;
+        std::string name;
+        mEntries[mCurrentIndex].GetName( name );
+        FeatureAccessor::setStr( mFeature, name );
     } else {
         throw FeatureContainerException( __FUNCTION__, "Attempting to set enum to out of bounds index", VmbErrorWrongType );
     }
@@ -170,7 +174,7 @@ FeatureDouble::FeatureDouble( const AVT::VmbAPI::FeaturePtr& feature )
 
 FeatureDouble::~FeatureDouble()
 {
-    // TODO remove callback?
+
 }
 
 double FeatureDouble::setValue( double val )
