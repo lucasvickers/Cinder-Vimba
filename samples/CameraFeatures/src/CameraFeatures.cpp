@@ -29,8 +29,6 @@
 
 #include "civimba/CiVimba.h"
 
-#include "ParamFeature.h"
-
 using namespace ci;
 using namespace ci::app;
 using namespace ci::log;
