@@ -23,265 +23,259 @@
 
 #include <iostream>
 #include <iomanip>
-#include <time.h>
+#include <chrono>
 
 #include "civimba/FrameObserver.h"
 #include "civimba/TransformImage.h"
 #include "civimba/Types.h"
+#include "cinder/Log.h"
 
 // TODO bring this file to my standards w/ formatting
 // TODO move to cinder logging
+
+using namespace ci::log;
+using namespace std::chrono;
+using namespace std;
 
 namespace civimba {
 
 using namespace AVT::VmbAPI;
 
-FrameObserver::FrameObserver( CameraPtr camera, 
+FrameObserver::FrameObserver( CameraPtr camera,
                               FrameCallback callback,
-                              FrameInfo frameInfo, 
+                              FrameLoggingInfo frameLogging,
                               ColorProcessing colorProcessing )
-    :   IFrameObserver( camera ),
-        mFrameCallback( callback ),
-        mFrameInfos( frameInfo ),   
-        mColorProcessing( colorProcessing )
-{ }
-
-double FrameObserver::GetTime()
+		: IFrameObserver( camera ),
+		  mFrameCallback( callback ),
+		  mFrameLogging( frameLogging ),
+		  mColorProcessing( colorProcessing )
 {
-    double dTime = 0.0;
-
-    struct timespec now;
-    clock_gettime( CLOCK_REALTIME, &now );
-    dTime = ( (double)now.tv_sec ) + ( (double)now.tv_nsec ) / 1000000000.0;
-
-    return dTime;
+	camera->GetID( mCameraID );
 }
 
-void PrintFrameInfo( const FramePtr &pFrame )
+double FrameObserver::getTime()
 {
-    std::cout<<" Size:";
-    VmbUint32_t     nWidth = 0;
-    VmbErrorType    res;
-    res = pFrame->GetWidth(nWidth);
-    if( VmbErrorSuccess == res ) {
-        std::cout << nWidth;
-    } else {
-        std::cout << "?";
-    }
-
-    std::cout << "x";
-    VmbUint32_t nHeight = 0;
-    res = pFrame->GetHeight(nHeight);
-    if( VmbErrorSuccess == res ) {
-        std::cout<< nHeight;
-    } else {
-        std::cout << "?";
-    }
-
-    std::cout<<" Format:";
-    VmbPixelFormatType ePixelFormat = VmbPixelFormatMono8;
-    res = pFrame->GetPixelFormat( ePixelFormat );
-    if( VmbErrorSuccess == res ) {
-        std::cout << "0x" << std::hex << ePixelFormat << std::dec;
-    } else {
-        std::cout << "?";
-    }
+	auto t1 = high_resolution_clock::now();
+	double dTime = duration_cast<milliseconds>( t1.time_since_epoch()).count();
+	return dTime / 1000;
 }
 
-void PrintFrameStatus( VmbFrameStatusType eFrameStatus )
+void FrameObserver::printFrameSizeFormat( const FramePtr &pFrame, stringstream &ss )
 {
-    switch( eFrameStatus ) {
-    case VmbFrameStatusComplete:
-        std::cout << "Complete";
-        break;
+	ss << " Size:";
+	VmbUint32_t nWidth = 0;
+	VmbErrorType res;
+	res = pFrame->GetWidth( nWidth );
+	if( VmbErrorSuccess == res ) {
+		ss << nWidth;
+	} else {
+		ss << "?";
+	}
 
-    case VmbFrameStatusIncomplete:
-        std::cout << "Incomplete";
-        break;
+	ss << "x";
+	VmbUint32_t nHeight = 0;
+	res = pFrame->GetHeight( nHeight );
+	if( VmbErrorSuccess == res ) {
+		ss << nHeight;
+	} else {
+		ss << "?";
+	}
 
-    case VmbFrameStatusTooSmall:
-        std::cout << "Too small";
-        break;
-
-    case VmbFrameStatusInvalid:
-        std::cout << "Invalid";
-        break;
-
-    default:
-        std::cout << "unknown frame status";
-        break;
-    }
+	ss << " Format:";
+	VmbPixelFormatType ePixelFormat = VmbPixelFormatMono8;
+	res = pFrame->GetPixelFormat( ePixelFormat );
+	if( VmbErrorSuccess == res ) {
+		ss << std::hex;
+		ss << "0x" << ePixelFormat;
+		ss << std::dec;
+	} else {
+		ss << "?";
+	}
 }
 
-void FrameObserver::ShowFrameInfos( const FramePtr &pFrame ) 
+void FrameObserver::printFrameStatus( VmbFrameStatusType eFrameStatus, stringstream &ss )
 {
-    bool                bShowFrameInfos     = false;
-    VmbUint64_t         nFrameID            = 0;
-    bool                bFrameIDValid       = false;
-    VmbFrameStatusType  eFrameStatus        = VmbFrameStatusComplete;
-    bool                bFrameStatusValid   = false;
-    VmbErrorType        res                 = VmbErrorSuccess;
-    double              dFPS                = 0.0;
-    bool                bFPSValid           = false;
-    VmbUint64_t         nFramesMissing      = 0;
+	switch( eFrameStatus ) {
+		case VmbFrameStatusComplete:
+			ss << "Complete";
+			break;
 
-    if( FRAME_INFO_SHOW == mFrameInfos ) {
-        bShowFrameInfos = true;
-    }
+		case VmbFrameStatusIncomplete:
+			ss << "Incomplete";
+			break;
 
-    res = pFrame->GetFrameID( nFrameID );
-    if( VmbErrorSuccess == res ) {
-        bFrameIDValid = true;
+		case VmbFrameStatusTooSmall:
+			ss << "Too small";
+			break;
 
-        if( mFrameID.IsValid() )
-        {
-            if( nFrameID != ( mFrameID() + 1 ) )
-            {
-                nFramesMissing = nFrameID - mFrameID() - 1;
-                if( 1 == nFramesMissing ) {
-                    std::cout << "1 missing frame detected\n";
-                } else {
-                    std::cout << nFramesMissing << "missing frames detected\n";
-                }
-            }
-        }
+		case VmbFrameStatusInvalid:
+			ss << "Invalid";
+			break;
 
-        mFrameID( nFrameID );
-        double dFrameTime = GetTime();
-        if( ( mFrameTime.IsValid() ) && ( 0 == nFramesMissing ) )
-        {
-            double dTimeDiff = dFrameTime - mFrameTime();
-            if( dTimeDiff > 0.0 )
-            {
-                dFPS = 1.0 / dTimeDiff;
-                bFPSValid = true;
-            } 
-            else {
-                bShowFrameInfos = true;
-            }
-        }
+		default:
+			ss << "unknown frame status";
+			break;
+	}
+}
 
-        mFrameTime( dFrameTime );
-    }
-    else
-    {
-        bShowFrameInfos = true;
-        mFrameID.Invalidate();
-        mFrameTime.Invalidate();
-    }
+void printFrameInfos( const FramePtr &pFrame, VmbFrameStatusType eFrameStatus, stringstream &ss )
+{
 
-    res = pFrame->GetReceiveStatus( eFrameStatus );
-    if( VmbErrorSuccess == res )
-    {
-        bFrameStatusValid = true;
+}
 
-        if( VmbFrameStatusComplete != eFrameStatus )
-        {
-            bShowFrameInfos = true;
-        }
-    }
-    else
-    {
-        bShowFrameInfos = true;
-    }
 
-    if( bShowFrameInfos ) {
-        std::cout << "Camera ID:" << mCameraID;
-        std::cout << " Frame ID:";
+void FrameObserver::logFrameInfos( const FramePtr &frame )
+{
+	VmbUint64_t frameID = 0;
+	bool frameIDValid = false;
+	VmbFrameStatusType frameStatus = VmbFrameStatusComplete;
+	VmbErrorType res = VmbErrorSuccess;
+	double fps = 0.0;
+	bool fpsValid = false;
+	VmbUint64_t framesMissing = 0;
 
-        bFrameIDValid ? std::cout << nFrameID : std::cout << "?";
+	res = frame->GetFrameID( frameID );
+	if( VmbErrorSuccess == res ) {
+		frameIDValid = true;
 
-        std::cout << " Status:";
-        if( bFrameStatusValid ) {
-            PrintFrameStatus( eFrameStatus);
-        } else {
-            std::cout << "?";
-        }
+		if( mFrameID.IsValid()) {
+			if( frameID != (mFrameID() + 1)) {
+				framesMissing = frameID - mFrameID() - 1;
 
-        PrintFrameInfo( pFrame );
-        
-        std::cout << " FPS:";
-        if( bFPSValid )
-        {
-            std::streamsize s = std::cout.precision();
-            std::cout<<std::fixed<<std::setprecision(2)<<dFPS<<std::setprecision(s);
-        }
-        else 
-        {
-            std::cout << "?";
-        }
+				if( mFrameLogging >= FRAME_INFO_WARNINGS ) {
+					if( 1 == framesMissing ) {
+						CI_LOG_W( "1 missing frame detected" );
+					} else {
+						CI_LOG_W( framesMissing << " missing frames detected" );
+					}
+				}
+			}
+		}
+		mFrameID( frameID );
 
-        std::cout << "\n";
-    }
+		double frameTime = getTime();
+		if( mFrameTime.IsValid() && 0 == framesMissing ) {
+			double timeDiff = frameTime - mFrameTime();
+			if( timeDiff > 0.0 ) {
+				fps = 1.0 / timeDiff;
+				fpsValid = true;
+			}
+		}
+		mFrameTime( frameTime );
+
+	} else {
+
+		mFrameID.Invalidate();
+		mFrameTime.Invalidate();
+	}
+
+	stringstream ss;
+
+	res = frame->GetReceiveStatus( frameStatus );
+	if( VmbErrorSuccess == res ) {
+
+		if( VmbFrameStatusComplete == frameStatus ) {
+
+			// only print if we're printing all frames
+			if( FRAME_INFO_SHOW <= mFrameLogging ) {
+				ss << "Camera ID:" << mCameraID << " Frame ID: ";
+				frameIDValid ? ss << frameID << " " : ss << "? ";
+
+				printFrameStatus( frameStatus, ss );
+				printFrameSizeFormat( frame, ss );
+				ss << " FPS:";
+				if( fpsValid ) {
+					std::streamsize s = ss.precision();
+					ss << std::fixed << std::setprecision( 2 ) << fps << std::setprecision( s );
+				} else {
+					ss << "?";
+				}
+				CI_LOG_I( ss.str());
+			}
+		} else {
+			// print warnings
+			if( FRAME_INFO_WARNINGS <= mFrameLogging ) {
+				ss << "Camera ID:" << mCameraID << " Frame ID: ";
+				frameIDValid ? ss << frameID << " " : ss << "? ";
+
+				printFrameStatus( frameStatus, ss );
+				printFrameSizeFormat( frame, ss );
+				ss << " FPS:";
+				if( fpsValid ) {
+					std::streamsize s = ss.precision();
+					ss << std::fixed << std::setprecision( 2 ) << fps << std::setprecision( s );
+				} else {
+					ss << "?";
+				}
+				CI_LOG_W( ss.str());
+			}
+		}
+
+	} else {
+		// print error
+		if( FRAME_INFO_ERRORS <= mFrameLogging ) {
+			CI_LOG_E( "Error receiving frame status." );
+		}
+	}
 }
 
 void FrameObserver::FrameReceived( const FramePtr pFrame )
 {
-    if(! SP_ISNULL( pFrame ) )
-    {
-        if( FRAME_INFO_OFF != mFrameInfos )
-        {
-            ShowFrameInfos( pFrame);
-        }
+	if( ! SP_ISNULL( pFrame )) {
 
-        VmbFrameStatusType status;
-        VmbErrorType Result;
-        Result = SP_ACCESS( pFrame)->GetReceiveStatus( status);
+		logFrameInfos( pFrame );
 
-        if( VmbErrorSuccess == Result && VmbFrameStatusComplete == status)
-        {
+		VmbFrameStatusType status;
+		VmbErrorType Result;
+		Result = SP_ACCESS( pFrame )->GetReceiveStatus( status );
 
-            //TODO this is specific to image format, needs to be generalized
-            cinder::Surface8uRef newFrame;
-            //memcpy( newFrame->getData(), &vimbaData.front(), frameWidth * frameHeight * sizeof( uint8_t ) * 3 );
-            VmbUint32_t frameWidth, frameHeight;
-            pFrame->GetWidth(frameWidth);
-            pFrame->GetHeight(frameHeight);
+		if( VmbErrorSuccess == Result && VmbFrameStatusComplete == status ) {
 
-            switch( mColorProcessing )
-            {
-            default:
-                Result = VmbErrorBadParameter;
-                std::cout << "unknown color processing parameter\n";
-                break;
-            case COLOR_PROCESSING_OFF:
-                newFrame = std::shared_ptr<cinder::Surface8u>( new cinder::Surface8u( frameWidth, frameHeight, false, cinder::SurfaceChannelOrder::RGB ) );
-                Result = TransformImage::transform( pFrame, newFrame, "RGB24" );
-                break;
-            case COLOR_PROCESSING_MATRIX:
-                {
-                    std::cout << "Color Transform\n";
-                    const VmbFloat_t Matrix[] = {   0.6f, 0.3f, 0.1f, 
-                                                    0.6f, 0.3f, 0.1f, 
-                                                    0.6f, 0.3f, 0.1f};
-                    newFrame = std::shared_ptr<cinder::Surface8u>( new cinder::Surface8u( frameWidth, frameHeight, false, cinder::SurfaceChannelOrder::BGR ) );
-                    Result = TransformImage::transform( pFrame, newFrame,"BGR24", Matrix );
-                }
-                break;
+			//TODO this is specific to image format, needs to be generalized via templating
+			cinder::Surface8uRef newFrame;
 
-            }
+			VmbUint32_t frameWidth, frameHeight;
+			pFrame->GetWidth( frameWidth );
+			pFrame->GetHeight( frameHeight );
 
-            // TODO probably don't need this unless we're displaying frame info
-            if( VmbErrorSuccess == Result )
-            {
-                mFrameCallback( newFrame );
-            }
-            else
-            {
-                std::cout << "Transformation failed.\n";
-            }
-        }
-        else
-        {
-            std::cout << "Frame incomplete.\n";
-        }
-    }
-    else
-    {
-        std::cout <<"Frame pointer NULL.\n";
-    }
+			switch( mColorProcessing ) {
+				default:
+					Result = VmbErrorBadParameter;
+					std::cout << "unknown color processing parameter\n";
+					break;
+				case COLOR_PROCESSING_OFF:
+					newFrame = std::shared_ptr<cinder::Surface8u>(
+							new cinder::Surface8u( frameWidth, frameHeight, false,
+							                       cinder::SurfaceChannelOrder::RGB ));
+					Result = TransformImage::transform( pFrame, newFrame, "RGB24" );
+					break;
+				case COLOR_PROCESSING_MATRIX: {
+					std::cout << "Color Transform\n";
+					const VmbFloat_t Matrix[] = {0.6f, 0.3f, 0.1f,
+					                             0.6f, 0.3f, 0.1f,
+					                             0.6f, 0.3f, 0.1f};
+					newFrame = std::shared_ptr<cinder::Surface8u>(
+							new cinder::Surface8u( frameWidth, frameHeight, false,
+							                       cinder::SurfaceChannelOrder::BGR ));
+					Result = TransformImage::transform( pFrame, newFrame, "BGR24", Matrix );
+				}
+					break;
 
-    m_pCamera->QueueFrame( pFrame );
+			}
+
+			// TODO probably don't need this unless we're displaying frame info
+			if( VmbErrorSuccess == Result ) {
+				mFrameCallback( newFrame );
+			}
+		}
+	}
+	else {
+		if( FRAME_INFO_ERRORS >= mFrameLogging ) {
+			CI_LOG_E( "Error receiving frame status." );
+		}
+	}
+
+	m_pCamera->QueueFrame( pFrame );
 }
 
 } // namespace civimba

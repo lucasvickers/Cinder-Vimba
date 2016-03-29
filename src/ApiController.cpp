@@ -6,10 +6,10 @@
  Redistribution and use in source and binary forms, with or without modification, are permitted provided that
  the following conditions are met:
 
-    * Redistributions of source code must retain the above copyright notice, this list of conditions and
-    the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-    the following disclaimer in the documentation and/or other materials provided with the distribution.
+	* Redistributions of source code must retain the above copyright notice, this list of conditions and
+	the following disclaimer.
+	* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+	the following disclaimer in the documentation and/or other materials provided with the distribution.
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
@@ -34,114 +34,112 @@ namespace civimba {
 using namespace AVT::VmbAPI;
 
 ApiController::ApiController()
-    // Get a reference to the Vimba singleton
-    : mSystem ( VimbaSystem::GetInstance() )
+// Get a reference to the Vimba singleton
+		: mSystem( VimbaSystem::GetInstance())
 { }
 
 ApiController::~ApiController()
 {
-    mSystem.Shutdown();
+	mSystem.Shutdown();
 }
 
 void ApiController::startup()
 {
-    VmbErrorType res = mSystem.Startup();
-    if( VmbErrorSuccess != res ) {
-        throw ApiControllerException( __FUNCTION__, ErrorCodeToMessage( res ), res );
-    }
+	VmbErrorType res = mSystem.Startup();
+	if( VmbErrorSuccess != res ) {
+		throw ApiControllerException( __FUNCTION__, ErrorCodeToMessage( res ), res );
+	}
 }
 
 void ApiController::shutdown()
 {
-    mSystem.Shutdown();
+	mSystem.Shutdown();
 }
 
 CameraControllerRef ApiController::getCamera( const std::string &cameraID )
 {
-    CameraControllerRef cam = std::make_shared<CameraController>();
+	CameraControllerRef cam = std::make_shared<CameraController>();
 
-    VmbErrorType res = mSystem.OpenCameraByID( cameraID.c_str(), VmbAccessModeFull, cam->mCamera );
-    if( VmbErrorSuccess != res ) {
-        throw ApiControllerException( __FUNCTION__, ErrorCodeToMessage( res ), res );
-    }
+	VmbErrorType res = mSystem.OpenCameraByID( cameraID.c_str(), VmbAccessModeFull, cam->mCamera );
+	if( VmbErrorSuccess != res ) {
+		throw ApiControllerException( __FUNCTION__, ErrorCodeToMessage( res ), res );
+	}
 
-    // Set the GeV packet size to the highest possible value
-    // We assume GigE camera
-    FeaturePtr pCommandFeature;
-    if ( VmbErrorSuccess == cam->mCamera->GetFeatureByName( "GVSPAdjustPacketSize", pCommandFeature ) ) {
-        if ( VmbErrorSuccess == pCommandFeature->RunCommand() ) {
-            bool bIsCommandDone = false;
-            do {
-                if ( VmbErrorSuccess != pCommandFeature->IsCommandDone( bIsCommandDone ) ) {
-                     break;
-                }
-            } while ( false == bIsCommandDone );
-        }
-    }
+	// Set the GeV packet size to the highest possible value
+	// We assume GigE camera
+	FeaturePtr pCommandFeature;
+	if( VmbErrorSuccess == cam->mCamera->GetFeatureByName( "GVSPAdjustPacketSize", pCommandFeature )) {
+		if( VmbErrorSuccess == pCommandFeature->RunCommand()) {
+			bool bIsCommandDone = false;
+			do {
+				if( VmbErrorSuccess != pCommandFeature->IsCommandDone( bIsCommandDone )) {
+					break;
+				}
+			} while( false == bIsCommandDone );
+		}
+	}
 
-    prepareCamera( cam );
+	prepareCamera( cam );
 
-    return cam;
+	return cam;
 }
 
 /**setting a feature to maximum value that is a multiple of 2*/
-VmbErrorType ApiController::setIntFeatureValueModulo2(  CameraControllerRef& cam, const char* const& Name )
+VmbErrorType ApiController::setIntFeatureValueModulo2( CameraControllerRef &cam, const char *const &Name )
 {
-    VmbErrorType        result;
-    FeaturePtr          feature;
-    VmbInt64_t          value_min;
-    VmbInt64_t          value_max;
+	VmbErrorType result;
+	FeaturePtr feature;
+	VmbInt64_t value_min;
+	VmbInt64_t value_max;
 
-    result = SP_ACCESS( cam->mCamera )->GetFeatureByName( Name, feature );
-    if( VmbErrorSuccess != result )
-    {
-        return result;
-    }
-    result = SP_ACCESS( feature )->GetRange( value_min, value_max );
-    if( VmbErrorSuccess != result )
-    {
-        return result;
-    }
-    value_max =( value_max>>1 )<<1;
-    result = SP_ACCESS( feature )->SetValue ( value_max );
-    return result;
+	result = SP_ACCESS( cam->mCamera )->GetFeatureByName( Name, feature );
+	if( VmbErrorSuccess != result ) {
+		return result;
+	}
+	result = SP_ACCESS( feature )->GetRange( value_min, value_max );
+	if( VmbErrorSuccess != result ) {
+		return result;
+	}
+	value_max = (value_max >> 1) << 1;
+	result = SP_ACCESS( feature )->SetValue( value_max );
+	return result;
 }
 
-/**prepare camera so that the delivered image will not fail in image transform*/
-void ApiController::prepareCamera( CameraControllerRef& cam )
+// prepare camera so that the delivered image will not fail in image transform
+void ApiController::prepareCamera( CameraControllerRef &cam )
 {
-    VmbErrorType result;
-    result = setIntFeatureValueModulo2( cam, "Width" );
-    if( VmbErrorSuccess != result ) {
-        throw ApiControllerException( __FUNCTION__, ErrorCodeToMessage( result ), result );
-    }
-    result = setIntFeatureValueModulo2( cam, "Height" );
-    if( VmbErrorSuccess != result ) {
-        throw ApiControllerException( __FUNCTION__, ErrorCodeToMessage( result ), result );
-    }
+	VmbErrorType result;
+	result = setIntFeatureValueModulo2( cam, "Width" );
+	if( VmbErrorSuccess != result ) {
+		throw ApiControllerException( __FUNCTION__, ErrorCodeToMessage( result ), result );
+	}
+	result = setIntFeatureValueModulo2( cam, "Height" );
+	if( VmbErrorSuccess != result ) {
+		throw ApiControllerException( __FUNCTION__, ErrorCodeToMessage( result ), result );
+	}
 }
 
 std::vector<AVT::VmbAPI::CameraPtr> ApiController::getCameraList() const
 {
-    AVT::VmbAPI::CameraPtrVector cameras;
-    // Get all known cameras
-    if ( VmbErrorSuccess == mSystem.GetCameras( cameras ) ) {
-        // And return them
-        return cameras;
-    }
-    return std::vector<CameraPtr>();
+	AVT::VmbAPI::CameraPtrVector cameras;
+	// Get all known cameras
+	if( VmbErrorSuccess == mSystem.GetCameras( cameras )) {
+		// And return them
+		return cameras;
+	}
+	return std::vector<CameraPtr>();
 }
 
 std::string ApiController::getVersion() const
 {
-    std::stringstream  ss;
+	std::stringstream ss;
 
-    VmbVersionInfo_t info;
-    if (VmbErrorSuccess != mSystem.QueryVersion( info )) {
-        throw std::exception();
-    }
-    ss << info.major << "." << info.minor << "." << info.patch;
-    return ss.str();
+	VmbVersionInfo_t info;
+	if( VmbErrorSuccess != mSystem.QueryVersion( info )) {
+		throw std::exception();
+	}
+	ss << info.major << "." << info.minor << "." << info.patch;
+	return ss.str();
 }
 
 } // namespace civimba

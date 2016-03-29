@@ -39,69 +39,81 @@ namespace civimba {
 
 typedef std::shared_ptr<class CameraController> CameraControllerRef;
 
-class CameraController
-{
-  friend class ApiController;
+class CameraController {
+	friend class ApiController;
 
   public:
 
-    class CameraControllerException: public BaseException
-    {
-    public:
-        CameraControllerException( const char* const &fun, const char* const &msg, VmbErrorType result = VmbErrorOther )
-            : BaseException( fun, msg, result )
-        { }
-        CameraControllerException( const char* const &fun, const std::string &msg, VmbErrorType result = VmbErrorOther )
-            : BaseException( fun, msg, result )
-        { }
-        ~CameraControllerException() throw()
-        { }
-    };
+	class CameraControllerException : public BaseException
+	{
 
-    CameraController( uint32_t numberFrames = 5 );
-    ~CameraController();
+	  public:
+		CameraControllerException( const char *const &fun, const char *const &msg,
+		                           VmbErrorType result = VmbErrorOther )
+			: BaseException( fun, msg, result )
+		{ }
 
-    FrameInfo getFrameInfo() { return mFrameInfo; }
-    void setFrameInfo( FrameInfo info );
+		CameraControllerException( const char *const &fun, const std::string &msg,
+		                           VmbErrorType result = VmbErrorOther )
+			: BaseException( fun, msg, result )
+		{ }
 
-    ColorProcessing getColorProcessing() { return mColorProcessing; }
-    void setColorProcessing( ColorProcessing cp );
+		~CameraControllerException() throw()
+		{ }
+	};
 
-    std::vector<AVT::VmbAPI::FeaturePtr> getFeatures();
-    AVT::VmbAPI::FeaturePtr getFeatureByName( const char *name );
-    AVT::VmbAPI::FeaturePtr getFeatureByName( const std::string &name );
+	CameraController( uint32_t numberFrames = 5 );
 
-    void startContinuousImageAcquisition();
-    void stopContinuousImageAcquisition();
+	~CameraController();
 
+	ColorProcessing getColorProcessing() { return mColorProcessing; }
 
-    cinder::Surface8uRef getCurrentFrame();
-    bool checkNewFrame();
+	void setColorProcessing( ColorProcessing cp );
 
-    std::string getID();
-    std::string getName();
-    std::string getModel();
+	std::vector<AVT::VmbAPI::FeaturePtr> getFeatures();
 
-    // expose raw camera for low level requests that are not exposed.
-    AVT::VmbAPI::CameraPtr getCamera() { return mCamera; }
+	AVT::VmbAPI::FeaturePtr getFeatureByName( const char *name );
+
+	AVT::VmbAPI::FeaturePtr getFeatureByName( const std::string &name );
+
+	void startContinuousImageAcquisition();
+
+	void stopContinuousImageAcquisition();
+
+	void setFrameLogging( FrameLoggingInfo logging );
+
+	FrameLoggingInfo getFrameLogging() { return mFrameLoggingInfo; }
+
+	cinder::Surface8uRef getCurrentFrame();
+
+	bool checkNewFrame();
+
+	std::string getID();
+
+	std::string getName();
+
+	std::string getModel();
+
+	// expose raw camera for low level requests that are not exposed.
+	AVT::VmbAPI::CameraPtr getCamera() { return mCamera; }
 
   private:
 
-    void frameObservedCallback( cinder::Surface8uRef &frame );
+	void frameObservedCallback( cinder::Surface8uRef &frame );
 
-    AVT::VmbAPI::CameraPtr  mCamera;
-    FrameObserver           *mFrameObserver;
+	AVT::VmbAPI::CameraPtr mCamera;
+	FrameObserver *mFrameObserver;
 
-    std::mutex              mFrameMutex;
-    // TODO support other formats
-    cinder::Surface8uRef    mCurrentFrame;
-    std::mutex              mCheckFrameMutex;
-    bool                    mNewFrame;
+	std::mutex mFrameMutex;
+	// TODO support other formats
+	cinder::Surface8uRef mCurrentFrame;
+	std::mutex mCheckFrameMutex;
+	bool mNewFrame;
 
-    ColorProcessing         mColorProcessing;
-    FrameInfo               mFrameInfo;
+	ColorProcessing mColorProcessing;
+	FrameLoggingInfo mFrameLoggingInfo;
 
-    uint32_t                mNumberFrames;
+	uint32_t mNumberFrames;
 };
 
 } // namespace civimba

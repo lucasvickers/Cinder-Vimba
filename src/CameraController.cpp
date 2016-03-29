@@ -6,10 +6,10 @@
  Redistribution and use in source and binary forms, with or without modification, are permitted provided that
  the following conditions are met:
 
-    * Redistributions of source code must retain the above copyright notice, this list of conditions and
-    the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-    the following disclaimer in the documentation and/or other materials provided with the distribution.
+	* Redistributions of source code must retain the above copyright notice, this list of conditions and
+	the following disclaimer.
+	* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+	the following disclaimer in the documentation and/or other materials provided with the distribution.
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
@@ -31,132 +31,136 @@ namespace civimba {
 using namespace AVT::VmbAPI;
 
 CameraController::CameraController( uint32_t numberFrames )
-:   mColorProcessing( COLOR_PROCESSING_OFF ),
-    mFrameInfo( FRAME_INFO_AUTO ),
-    mNewFrame( false ),
-    mFrameObserver( nullptr ),
-    mNumberFrames( numberFrames )
+		: mColorProcessing( COLOR_PROCESSING_OFF ),
+		  mFrameLoggingInfo( FRAME_INFO_WARNINGS ),
+		  mNewFrame( false ),
+		  mFrameObserver( nullptr ),
+		  mNumberFrames( numberFrames )
 {
-    if( mNumberFrames == 0 ) {
-        throw CameraControllerException( __FUNCTION__, "CameraController needs at least one frame.", VmbErrorBadParameter );
-    }
+	if( mNumberFrames == 0 ) {
+		throw CameraControllerException( __FUNCTION__, "CameraController needs at least one frame.",
+										 VmbErrorBadParameter );
+	}
 }
 
 CameraController::~CameraController()
 {
-    if( mCamera ) {
-        mCamera->Close();
-    }
+	if( mCamera ) {
+		mCamera->Close();
+	}
 }
 
-void CameraController::setFrameInfo( FrameInfo info )
+void CameraController::setFrameLogging( FrameLoggingInfo info )
 {
-    if( mFrameObserver ) {
-        mFrameObserver->setFrameInfo( info );
-    }
+	if( mFrameObserver ) {
+		mFrameObserver->setFrameLogging( info );
+	}
+
+	mFrameLoggingInfo = info;
 }
 
 void CameraController::setColorProcessing( ColorProcessing cp )
 {
-    if( mFrameObserver ) {
-        mFrameObserver->setColorProcessing( cp );
-    }
+	if( mFrameObserver ) {
+		mFrameObserver->setColorProcessing( cp );
+	}
 }
 
 std::vector<AVT::VmbAPI::FeaturePtr> CameraController::getFeatures()
 {
-    AVT::VmbAPI::FeaturePtrVector ret;
-    mCamera->GetFeatures( ret );
+	AVT::VmbAPI::FeaturePtrVector ret;
+	mCamera->GetFeatures( ret );
 
-    return ret;
+	return ret;
 }
 
 AVT::VmbAPI::FeaturePtr CameraController::getFeatureByName( const char *name )
 {
-    FeaturePtr feature;
-    VmbErrorType err = mCamera->GetFeatureByName( name, feature );
-    if( VmbErrorSuccess != err ) {
-        throw CameraControllerException( __FUNCTION__, ErrorCodeToMessage( err ), err );
-    }
+	FeaturePtr feature;
+	VmbErrorType err = mCamera->GetFeatureByName( name, feature );
+	if( VmbErrorSuccess != err ) {
+		throw CameraControllerException( __FUNCTION__, ErrorCodeToMessage( err ), err );
+	}
 
-    return feature;
+	return feature;
 }
 
 AVT::VmbAPI::FeaturePtr CameraController::getFeatureByName( const std::string &name )
 {
-    return getFeatureByName( name.c_str() );
+	return getFeatureByName( name.c_str());
 }
 
 std::string CameraController::CameraController::getID()
 {
-    std::string ret;
-    mCamera->GetID( ret );
-    return ret;
+	std::string ret;
+	mCamera->GetID( ret );
+	return ret;
 }
 
 std::string CameraController::CameraController::getName()
 {
-    std::string ret;
-    mCamera->GetName( ret );
-    return ret;
+	std::string ret;
+	mCamera->GetName( ret );
+	return ret;
 }
 
 std::string CameraController::CameraController::getModel()
 {
-    std::string ret;
-    mCamera->GetModel( ret );
-    return ret;
+	std::string ret;
+	mCamera->GetModel( ret );
+	return ret;
 }
 
-
-    cinder::Surface8uRef CameraController::getCurrentFrame()
+cinder::Surface8uRef CameraController::getCurrentFrame()
 {
-    // lock isn't really needed
-    std::lock_guard<std::mutex> lock( mFrameMutex );
-    return mCurrentFrame;
+	// lock isn't really needed
+	std::lock_guard<std::mutex> lock( mFrameMutex );
+	return mCurrentFrame;
 }
 
 bool CameraController::checkNewFrame()
 {
-    std::lock_guard<std::mutex> lock( mCheckFrameMutex );
-    bool status = mNewFrame;
-    mNewFrame = false;
-    return status;
+	std::lock_guard<std::mutex> lock( mCheckFrameMutex );
+	bool status = mNewFrame;
+	mNewFrame = false;
+	return status;
 }
 
 void CameraController::frameObservedCallback( cinder::Surface8uRef &frame )
 {
-    // lock and swap surfaces
-    std::lock_guard<std::mutex> lock( mFrameMutex );
-    mCurrentFrame = frame;
-    mNewFrame = true;
+	// lock and swap surfaces
+	std::lock_guard<std::mutex> lock( mFrameMutex );
+	mCurrentFrame = frame;
+	mNewFrame = true;
 }
 
 void CameraController::startContinuousImageAcquisition()
 {
-    using namespace std::placeholders;
+	using namespace std::placeholders;
 
-    if( mFrameObserver ) {
-        // TODO log that we ignored this
-        return;
-    }
-    // Create a frame observer for this camera (This will be wrapped in a shared_ptr so we don't delete it)
-    mFrameObserver = new FrameObserver( mCamera, std::bind( &CameraController::frameObservedCallback, this, _1 ), mFrameInfo, mColorProcessing );
-    
-    // Start streaming.  FrameObserver* gets managed elsewhere
-    VmbErrorType res = mCamera->StartContinuousImageAcquisition( mNumberFrames, IFrameObserverPtr( mFrameObserver ));
+	if( mFrameObserver ) {
+		// TODO log that we ignored this
+		return;
+	}
+	// Create a frame observer for this camera (This will be wrapped in a shared_ptr so we don't delete it)
+	mFrameObserver = new FrameObserver( mCamera, std::bind( &CameraController::frameObservedCallback, this, _1 ),
+										mFrameLoggingInfo, mColorProcessing );
 
-    if( res != VmbErrorSuccess ) {
-        throw CameraControllerException( __FUNCTION__, ErrorCodeToMessage( res ), VmbErrorOther );      
-    }
+	// Start streaming.  FrameObserver* gets managed elsewhere
+	VmbErrorType res = mCamera->StartContinuousImageAcquisition( mNumberFrames,
+																 IFrameObserverPtr( mFrameObserver ));
+
+	if( res != VmbErrorSuccess ) {
+		throw CameraControllerException( __FUNCTION__, ErrorCodeToMessage( res ), VmbErrorOther );
+	}
 }
-    
+
 
 void CameraController::stopContinuousImageAcquisition()
 {
-    // Stop streaming
-    mCamera->StopContinuousImageAcquisition();
-    mFrameObserver = nullptr;
+	// Stop streaming
+	mCamera->StopContinuousImageAcquisition();
+	mFrameObserver = nullptr;
 }
 
 } // namespace civimba

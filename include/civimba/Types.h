@@ -6,10 +6,10 @@
  Redistribution and use in source and binary forms, with or without modification, are permitted provided that
  the following conditions are met:
 
-    * Redistributions of source code must retain the above copyright notice, this list of conditions and
-    the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
-    the following disclaimer in the documentation and/or other materials provided with the distribution.
+	* Redistributions of source code must retain the above copyright notice, this list of conditions and
+	the following disclaimer.
+	* Redistributions in binary form must reproduce the above copyright notice, this list of conditions and
+	the following disclaimer in the documentation and/or other materials provided with the distribution.
 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
@@ -26,14 +26,15 @@
 namespace civimba {
 
 typedef enum {
-    FRAME_INFO_OFF,
-    FRAME_INFO_SHOW,
-    FRAME_INFO_AUTO
-} FrameInfo;
+	FRAME_INFO_OFF = 0,         // shows no frames
+	FRAME_INFO_ERRORS,      // shows frame errors
+	FRAME_INFO_WARNINGS,    // shows warnings such as dropped frames
+	FRAME_INFO_SHOW,        // shows all frame info
+} FrameLoggingInfo;
 
 typedef enum {
-    COLOR_PROCESSING_OFF,
-    COLOR_PROCESSING_MATRIX
+	COLOR_PROCESSING_OFF,
+	COLOR_PROCESSING_MATRIX
 } ColorProcessing;
 
 } // namespace civimba

@@ -26,6 +26,7 @@
 #include <queue>
 #include <string>
 #include <functional>
+#include <sstream>
 
 #include "VimbaCPP/Include/VimbaCPP.h"
 
@@ -34,63 +35,75 @@
 
 namespace civimba {
 
-class FrameObserver : virtual public AVT::VmbAPI::IFrameObserver
-{
+class FrameObserver : virtual public AVT::VmbAPI::IFrameObserver {
 public:
 
-    typedef std::function<void( cinder::Surface8uRef& )> FrameCallback;
+	typedef std::function<void( cinder::Surface8uRef & )> FrameCallback;
 
-    // We pass the camera that will deliver the frames to the constructor
-    FrameObserver( AVT::VmbAPI::CameraPtr camera,
-                   FrameCallback callback,
-                   FrameInfo frameInfo, 
-                   ColorProcessing colorProcessing );
-    
-    // This is our callback routine that will be executed on every received frame
-    virtual void FrameReceived( const AVT::VmbAPI::FramePtr frame );
+	// We pass the camera that will deliver the frames to the constructor
+	FrameObserver( AVT::VmbAPI::CameraPtr camera,
+	               FrameCallback callback,
+	               FrameLoggingInfo frameInfo,
+	               ColorProcessing colorProcessing );
 
-    void setColorProcessing( ColorProcessing cp ) { mColorProcessing = cp; }
-    void setFrameInfo( FrameInfo info ) { mFrameInfos = info; }
+	// This is our callback routine that will be executed on every received frame
+	virtual void FrameReceived( const AVT::VmbAPI::FramePtr frame );
+
+	void setColorProcessing( ColorProcessing cp ) { mColorProcessing = cp; }
+	void setFrameLogging( FrameLoggingInfo logging ) { mFrameLogging = logging; }
 
 private:
-    void ShowFrameInfos( const AVT::VmbAPI::FramePtr & frame );
-    double GetTime();
 
-    template <typename T>
-    class ValueWithState
-    {
-    private:
-        T mValue;
-        bool mState;
-    public:
-        ValueWithState()
-            : mState( false )
-        {}
-        ValueWithState( T &value )
-            : mValue ( value )
-            , mState( true )
-        {}
-        const T& operator()() const {
-            return mValue;
-        }
-        void operator()( const T &value ) {
-            mValue = value;
-            mState = true;
-        }
-        bool IsValid() const {
-            return mState;
-        }
-        void Invalidate() {
-            mState = false;
-        }
-    };
+	double getTime();
 
-    FrameInfo                       mFrameInfos;
-    ColorProcessing                 mColorProcessing;
-    ValueWithState<double>          mFrameTime;
-    ValueWithState<VmbUint64_t>     mFrameID;
-    std::string                     mCameraID;
-    FrameCallback                   mFrameCallback;
+	void printFrameSizeFormat( const AVT::VmbAPI::FramePtr &pFrame, std::stringstream &ss );
+
+	void printFrameStatus( VmbFrameStatusType eFrameStatus, std::stringstream &ss );
+
+	void logFrameInfos( const AVT::VmbAPI::FramePtr &pFrame );
+
+	template<typename T>
+	class ValueWithState {
+
+	  private:
+
+		T mValue;
+		bool mState;
+
+	  public:
+
+		ValueWithState()
+				: mState( false )
+		{ }
+
+		ValueWithState( T &value )
+				: mValue( value ), mState( true )
+		{ }
+
+		const T &operator()() const  {
+			return mValue;
+		}
+
+		void operator()( const T &value ) {
+			mValue = value;
+			mState = true;
+		}
+
+		bool IsValid() const {
+			return mState;
+		}
+
+		void Invalidate() {
+			mState = false;
+		}
+	};
+
+	FrameLoggingInfo            mFrameLogging;
+	ColorProcessing             mColorProcessing;
+	ValueWithState<double>      mFrameTime;
+	ValueWithState<VmbUint64_t> mFrameID;
+	std::string                 mCameraID;
+	FrameCallback               mFrameCallback;
 };
 
 } // namespace civimba
