@@ -188,9 +188,13 @@ double FeatureDouble::setValue( double val )
 
 void FeatureDouble::updateImpl()
 {
-    mValue = FeatureAccessor::getValue<double>( mFeature );
-    mMin = FeatureAccessor::getMin<double>( mFeature );
-    mMax = FeatureAccessor::getMax<double>( mFeature );
+    try {
+        mValue = FeatureAccessor::getValue<double>( mFeature );
+        mMin = FeatureAccessor::getMin<double>( mFeature );
+        mMax = FeatureAccessor::getMax<double>( mFeature );
+    } catch( FeatureAccessor::FeatureAccessorException& e ) {
+        CI_LOG_W( "Error accessing camera features: " << e.what() );
+    }
 }
 
 } // namespace featurecontainer
