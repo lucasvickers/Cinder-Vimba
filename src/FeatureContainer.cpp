@@ -24,6 +24,7 @@
 #include "civimba/FeatureContainer.h"
 #include "civimba/FeatureAccessor.h"
 #include "cinder/app/App.h"
+#include "cinder/Log.h"
 
 #include <sstream>
 #include <iostream>
