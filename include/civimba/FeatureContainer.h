@@ -36,6 +36,7 @@ namespace featurecontainer {
 
 typedef std::shared_ptr<class FeatureDouble> FeatureDoubleRef;
 typedef std::shared_ptr<class FeatureEnum> FeatureEnumRef;
+typedef std::shared_ptr<class FeatureInt> FeatureIntRef;
 
 
 template<typename FeatureT, typename... Args>
@@ -130,6 +131,31 @@ class FeatureDouble : public FeatureContainer, public std::enable_shared_from_th
     double mMax;
 
     void updateImpl() override;
+};
+
+class FeatureInt : public FeatureContainer, public std::enable_shared_from_this<FeatureInt>
+{
+  public:
+
+	FeatureInt( const AVT::VmbAPI::FeaturePtr &feature );
+	~FeatureInt();
+
+	int getValue() { return mValue; }
+
+	int getMin() { return mMin; }
+
+	int getMax() { return mMax; }
+
+	// set value, return what it's set to
+	int setValue( int val );
+
+  protected:
+
+	int mValue;
+	int mMin;
+	int mMax;
+
+	void updateImpl() override;
 };
 
 } // namespace featurecontainer

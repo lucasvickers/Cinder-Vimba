@@ -90,11 +90,11 @@ FeatureEnum::FeatureEnum( const AVT::VmbAPI::FeaturePtr &feature )
     //mIncrement = FeatureAccessor::hasIncrement( mFeature ) ? FeatureAccessor::getIncrement<double>( mFeature ) : 0;
 
     mPollingTime = FeatureAccessor::getPollingTime( mFeature );
-    //std::cout << "Feature " << FeatureAccessor::getName( mFeature ) << " has polling time of " << mPollingTime << std::endl;
-    if( mPollingTime ) {
-        setupUpdate();
-    }
-
+	// features with 0 polling time can be dependent on other features, so default to 1 second
+	if( mPollingTime == 0 ) {
+		mPollingTime = 1000;
+	}
+    setupUpdate();
 }
 
 FeatureEnum::~FeatureEnum()
@@ -167,10 +167,12 @@ FeatureDouble::FeatureDouble( const AVT::VmbAPI::FeaturePtr& feature )
     updateImpl();
     //mIncrement = FeatureAccessor::hasIncrement( mFeature ) ? FeatureAccessor::getIncrement<double>( mFeature ) : 0;
 
-    mPollingTime = FeatureAccessor::getPollingTime( mFeature );
-    if( mPollingTime ) {
-        setupUpdate();
-    }
+	mPollingTime = FeatureAccessor::getPollingTime( mFeature );
+	// features with 0 polling time can be dependent on other features, so default to 1 second
+	if( mPollingTime == 0 ) {
+		mPollingTime = 1000;
+	}
+	setupUpdate();
 }
 
 FeatureDouble::~FeatureDouble()
@@ -196,6 +198,59 @@ void FeatureDouble::updateImpl()
     } catch( FeatureAccessor::FeatureAccessorException& e ) {
         CI_LOG_W( "Error accessing camera features: " << e.what() );
     }
+}
+
+
+
+// ----------------------------------------------------------------------------------------------------
+// MARK: - FeatureInt
+// ----------------------------------------------------------------------------------------------------
+FeatureInt::FeatureInt( const AVT::VmbAPI::FeaturePtr& feature )
+: FeatureContainer( feature )
+{
+	// ensure compatible types
+	if( VmbFeatureDataInt != FeatureAccessor::getDataType( mFeature ) ) {
+		std::stringstream ss;
+		ss << "Feature " << FeatureAccessor::getName( mFeature ) << " is of type "
+		<< FeatureAccessor::getDataTypeString( mFeature ) << ", but expected type INT";
+		throw FeatureContainerException( __FUNCTION__, ss.str(), VmbErrorWrongType );
+	}
+
+	// call updateImpl to grab values
+	updateImpl();
+	//mIncrement = FeatureAccessor::hasIncrement( mFeature ) ? FeatureAccessor::getIncrement<int>( mFeature ) : 0;
+
+	mPollingTime = FeatureAccessor::getPollingTime( mFeature );
+	// features with 0 polling time can be dependent on other features, so default to 1 second
+	if( mPollingTime == 0 ) {
+		mPollingTime = 1000;
+	}
+	setupUpdate();
+}
+
+FeatureInt::~FeatureInt()
+{
+
+}
+
+int FeatureInt::setValue( int val )
+{
+	int target = std::max( std::min( val, mMax ), mMin);
+	FeatureAccessor::setValue<VmbInt64_t>( mFeature, target );
+	mValue = FeatureAccessor::getValue<VmbInt64_t>( mFeature );
+
+	return mValue;
+}
+
+void FeatureInt::updateImpl()
+{
+	try {
+		mValue = FeatureAccessor::getValue<VmbInt64_t>( mFeature );
+		mMin = FeatureAccessor::getMin<VmbInt64_t>( mFeature );
+		mMax = FeatureAccessor::getMax<VmbInt64_t>( mFeature );
+	} catch( FeatureAccessor::FeatureAccessorException& e ) {
+		CI_LOG_W( "Error accessing camera features: " << e.what() );
+	}
 }
 
 } // namespace featurecontainer

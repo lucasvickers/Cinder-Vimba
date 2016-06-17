@@ -66,6 +66,11 @@ class CameraFeatures : public App {
     FeatureDoubleRef        mGainAmount;
     FeatureEnumRef          mGainAuto;
 
+	FeatureIntRef           mWidth;
+	FeatureIntRef           mHeight;
+	FeatureIntRef           mOffsetX;
+	FeatureIntRef           mOffsetY;
+
 
     params::InterfaceGlRef	mParams;
 };
@@ -132,6 +137,10 @@ void CameraFeatures::setup()
         mExposureAuto = createContainer<FeatureEnum>(mCamera->getFeatureByName("ExposureAuto"));
         mGainAmount = createContainer<FeatureDouble>(mCamera->getFeatureByName("Gain"));
         mGainAuto = createContainer<FeatureEnum>(mCamera->getFeatureByName("GainAuto"));
+	    mWidth = createContainer<FeatureInt>(mCamera->getFeatureByName("Width"));
+	    mHeight = createContainer<FeatureInt>(mCamera->getFeatureByName("Height"));
+	    mOffsetX = createContainer<FeatureInt>(mCamera->getFeatureByName("OffsetX"));
+	    mOffsetY = createContainer<FeatureInt>(mCamera->getFeatureByName("OffsetY"));
 
         mParams->addParam<double>( "FrameRateAbs",
                                    std::bind( &FeatureDouble::setValue, mFrameRateAbs.get(), std::placeholders::_1 ),
@@ -150,6 +159,18 @@ void CameraFeatures::setup()
         mParams->addParam( "Gain Config", mGainAuto->getEnumsStr(),
                            std::bind( &FeatureEnum::setCurrentEnumIndex, mGainAuto.get(), std::placeholders::_1 ),
                            std::bind( &FeatureEnum::getCurrentEnumIndex, mGainAuto.get() ) );
+	    mParams->addParam<int>( "Width",
+	                             std::bind( &FeatureInt::setValue, mWidth.get(), std::placeholders::_1 ),
+	                             std::bind( &FeatureInt::getValue, mWidth.get() ) );
+	    mParams->addParam<int>( "Height",
+	                            std::bind( &FeatureInt::setValue, mHeight.get(), std::placeholders::_1 ),
+	                            std::bind( &FeatureInt::getValue, mHeight.get() ) );
+	    mParams->addParam<int>( "OffsetX",
+	                            std::bind( &FeatureInt::setValue, mOffsetX.get(), std::placeholders::_1 ),
+	                            std::bind( &FeatureInt::getValue, mOffsetX.get() ) );
+	    mParams->addParam<int>( "OffsetY",
+	                            std::bind( &FeatureInt::setValue, mOffsetY.get(), std::placeholders::_1 ),
+	                            std::bind( &FeatureInt::getValue, mOffsetY.get() ) );
 
         // TODO add white balance
 
