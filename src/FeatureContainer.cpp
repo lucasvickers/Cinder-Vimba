@@ -63,7 +63,7 @@ void FeatureContainer::update()
     milliseconds ms = duration_cast< milliseconds > ( system_clock::now().time_since_epoch() );
 
     if( ms > mNextPoll ) {
-        mNextPoll = ms + milliseconds(mPollingTime);
+        mNextPoll = ms + milliseconds( mPollingTime );
         updateImpl();
     }
 }
@@ -104,17 +104,23 @@ FeatureEnum::~FeatureEnum()
 
 void FeatureEnum::updateImpl()
 {
-    mCurrentName = FeatureAccessor::getValue<std::string>( mFeature );
+    // since updateImpl will be called deep inside the update loop, need to catch
 
-    // there's only like 2-5 options, so no need to optimize this
-    int index = 0;
-    for( auto &option : mEntries ) {
-        std::string name;
-        option.GetName( name );
-        if( name == mCurrentName ) {
-            mCurrentIndex = index;
+    try {
+        mCurrentName = FeatureAccessor::getValue<std::string>( mFeature );
+
+        // there's only like 2-5 options, so no need to optimize this
+        int index = 0;
+        for( auto &option : mEntries ) {
+            std::string name;
+            option.GetName( name );
+            if( name == mCurrentName ) {
+                mCurrentIndex = index;
+            }
+            ++index;
         }
-        ++index;
+    } catch( FeatureAccessor::FeatureAccessorException& e ) {
+        CI_LOG_W( "Error accessing camera features: " << e.what() );
     }
 }
 
@@ -191,6 +197,8 @@ double FeatureDouble::setValue( double val )
 
 void FeatureDouble::updateImpl()
 {
+    // since updateImpl will be called deep inside the update loop, need to catch
+    
     try {
         mValue = FeatureAccessor::getValue<double>( mFeature );
         mMin = FeatureAccessor::getMin<double>( mFeature );
@@ -244,6 +252,8 @@ int FeatureInt::setValue( int val )
 
 void FeatureInt::updateImpl()
 {
+    // since updateImpl will be called deep inside the update loop, need to catch
+
 	try {
 		mValue = FeatureAccessor::getValue<VmbInt64_t>( mFeature );
 		mMin = FeatureAccessor::getMin<VmbInt64_t>( mFeature );
